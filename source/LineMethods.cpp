@@ -1,4 +1,5 @@
 #include "LineMethods.hpp"
+#include <cmath>
 
 void
 _calculateQPointsRise(const int c_y1, const int c_y2, const float m, const float b, QVector<QPoint>& vec_points) {

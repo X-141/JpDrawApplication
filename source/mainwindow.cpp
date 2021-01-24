@@ -9,6 +9,7 @@
 // Test
 #include <QListWidget>
 #include <QPushButton>
+#include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)

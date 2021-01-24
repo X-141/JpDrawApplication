@@ -25,6 +25,8 @@ public:
 
     uint getId() const;
 
+    void setId(const uint aId);
+
     bool isEnabled() const;
 
     void setEnableStatus(bool status);

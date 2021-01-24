@@ -13,13 +13,13 @@ include_directories( "include" )
 
 # https://stackoverflow.com/questions/31259861/multiple-cmake-prefix-paths/31261919
 # this is some information on how to set multiple prefix paths
-set(CMAKE_PREFIX_PATH "C:\\Qt\\6.0.0\\msvc2019_64\\")
+# set(CMAKE_PREFIX_PATH "C:\\Qt\\6.0.0\\msvc2019_64\\")
 
 file( GLOB SOURCES "source/*.cpp" "include/*.hpp" )
 
-find_package(Qt6 COMPONENTS Widgets REQUIRED)
+find_package(Qt5 COMPONENTS Widgets REQUIRED)
+find_package(GTest REQUIRED)
 
 add_executable( RUN ${SOURCES} )
 
-target_link_libraries( RUN PRIVATE Qt6::Widgets )
-
+target_link_libraries( RUN PRIVATE Qt5::Widgets GTest::GTest GTest::Main )

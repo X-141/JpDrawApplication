@@ -26,7 +26,8 @@ DrawArea::DrawArea(QWidget* parent)
 void
 DrawArea::mousePressEvent(QMouseEvent* event) {
 //    qDebug() << "Mouse press: " << event->pos() << "\n";
-    mVirtualLayer = DrawLayer(this->size(), mId++);
+    //mVirtualLayer = DrawLayer(this->size(), mId++);
+    mVirtualLayer.setId(mId++);
     mVirtualLayer.fill(Qt::transparent);
     updateDrawArea();
     // Indicate that we are beginning to draw.
@@ -51,16 +52,14 @@ DrawArea::mouseReleaseEvent(QMouseEvent* event) {
     mPrevPoint = QPoint(-1,-1);
 }
 
-#include <QElapsedTimer>
-
 void
 DrawArea::mouseMoveEvent(QMouseEvent *event) {
 //    QElapsedTimer timer;
 //    timer.start();
     //qDebug() << "Mouse moved: " << event->pos() << "\n";
     if(mCurrentlyDrawing) {
-        QElapsedTimer timer;
-        timer.start();
+        //QElapsedTimer timer;
+        //timer.start();
         //qDebug() << "We are dragging!\n";
         pDrawPoint(event->pos());
     }
@@ -93,14 +92,14 @@ DrawArea::getLayerById(uint aId) {
 void
 DrawArea::updateDrawArea() {
     this->clear();
-    mHardLayer = DrawLayer(this->size(), mVirtualLayer.getId());
+    //mHardLayer = DrawLayer(this->size(), mVirtualLayer.getId());
     mHardLayer.fill();
     QPainter painter = QPainter(&mHardLayer);
     for(const auto& layers: mVirtualLayerVector)
         if(layers.isEnabled())
             painter.drawPixmap(0,0, layers);
-    painter.end();
     this->setPixmap(mHardLayer);
+    painter.end();
 }
 
 void
@@ -120,6 +119,7 @@ DrawArea::pDrawPoint(QPoint aPoint) {
         painter_virt.drawPoint(point);
     }
     mPrevPoint = aPoint;
-
+    painter_hard.end();
+    painter_virt.end();
     this->setPixmap(mHardLayer);
 }
