@@ -18,8 +18,15 @@ include_directories( "include" )
 file( GLOB SOURCES "source/*.cpp" "include/*.hpp" )
 
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
+
+# this is dependant on installation path.
+include("/usr/local/lib/cmake/opencv4/OpenCVConfig.cmake")
+
+find_package(OpenCV REQUIRED)
+include_directories(${OpenCV_INCLUDE_DIRS})
+
 find_package(GTest REQUIRED)
 
 add_executable( RUN ${SOURCES} )
 
-target_link_libraries( RUN PRIVATE Qt5::Widgets GTest::GTest GTest::Main )
+target_link_libraries( RUN PRIVATE Qt5::Widgets GTest::GTest GTest::Main ${OpenCV_LIBS})
