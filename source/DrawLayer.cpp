@@ -22,3 +22,4 @@ DrawLayer::isEnabled() const { return mEnabled; }
 
 void
 DrawLayer::setEnableStatus(bool status) { mEnabled = status; }
+

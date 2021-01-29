@@ -16,6 +16,8 @@ class QListWidget;
 class DrawArea;
 class QPushButton;
 
+const static QString DEBUG_targetFile = "C:\\Users\\seanp\\source\\JpDrawApplication\\build\\mo.png";
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -45,6 +47,13 @@ public slots:
      */
     void disableLayer(bool);
 
+    /**
+    * @brief compareLayer
+    * Compares the currently drawn layer
+    * to a layer loaded from system memory.
+    */
+    void compareLayer(bool);
+
 private:
     Ui::MainWindow *ui;
     DrawArea* drawArea;
@@ -52,6 +61,7 @@ private:
 
     QPushButton* mEnableButton;
     QPushButton* mDisableButton;
+    QPushButton* mCompareButton;
 
 };
 #endif // MAINWINDOW_H

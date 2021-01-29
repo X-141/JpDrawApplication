@@ -23,6 +23,16 @@ public:
 
     void updateDrawArea();
 
+    /**
+    * @brief generateImage
+    * Creates a QImage based on the current
+    * Hardlayer.
+    * Note, we don't use virtual layer since
+    * a virtual layer only contains the currently
+    * active pixels.
+    */
+    QImage generateImage();
+
 signals:
     /**
      * @brief layer_update_handle
@@ -34,14 +44,14 @@ signals:
 private:
     void pDrawPoint(QPoint aPoint);
 
-    /**
-     * @brief _add_new_layer
-     * @param aPixmap
-     * Handles the addition of a new layer. Creates
-     * a QPair of uint and aPixmap and adds it to
-     * id_layer_pairs.
-     */
-    void pAddNewLayer(QPixmap aPixmap);
+    ///**
+    // * @brief _add_new_layer
+    // * @param aPixmap
+    // * Handles the addition of a new layer. Creates
+    // * a QPair of uint and aPixmap and adds it to
+    // * id_layer_pairs.
+    // */
+    //void pAddNewLayer(QPixmap aPixmap);
 
 private:
     // Set to true on mouse down. Set to false on mouse up

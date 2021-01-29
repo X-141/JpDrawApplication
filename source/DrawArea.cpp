@@ -102,6 +102,11 @@ DrawArea::updateDrawArea() {
     painter.end();
 }
 
+QImage
+DrawArea::generateImage() {
+    return mHardLayer.toImage();
+}
+
 void
 DrawArea::pDrawPoint(QPoint aPoint) {
     auto painter_hard = QPainter(&mHardLayer);
