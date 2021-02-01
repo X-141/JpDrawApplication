@@ -72,6 +72,9 @@ private:
     QVector<DrawLayer> mVirtualLayerVector;
     // Incremented when _add_new_layer is called.
     uint mId;
+
+    // Slide width
+    uint penWidth;
 };
 
 #endif // DRAWAREA_H

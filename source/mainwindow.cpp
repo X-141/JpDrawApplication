@@ -11,6 +11,7 @@
 #include <QListWidget>
 #include <QPushButton>
 #include <QDebug>
+#include <QSlider>
 
 #include "Log.hpp"
 #include "opencv2/core.hpp"
@@ -53,6 +54,12 @@ MainWindow::MainWindow(QWidget *parent)
     mCompareButton->setText("Compare Layer");
     mCompareButton->setEnabled(true);
     ui->gridLayout->addWidget(mCompareButton, 4, 0, 1, 1);
+
+    mPenWidthSlider = new QSlider(Qt::Horizontal, ui->centralwidget);
+    mPenWidthSlider->setObjectName("PenWidthSlider");
+    mPenWidthSlider->setEnabled(true);
+    mPenWidthSlider->setTickPosition(QSlider::TicksBelow);
+    ui->gridLayout->addWidget(mPenWidthSlider, 5, 0, 1, 1);
 
     // Whenever, we add a layer to drawArea, we send a signal to
     // update

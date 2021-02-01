@@ -11,7 +11,8 @@ DrawArea::DrawArea(QWidget* parent)
       mCurrentlyDrawing(false),
       mHardLayer(this->size(), 0),
       mVirtualLayer(this->size(), 0),
-      mId(1)
+      mId(1),
+      penWidth(40)
 {
     this->clear();
 
@@ -100,6 +101,10 @@ DrawArea::updateDrawArea() {
             painter.drawPixmap(0,0, layers);
     this->setPixmap(mHardLayer);
     painter.end();
+    //QPainter painter_2(&mHardLayer);
+    //painter_2.setOpacity(.1);
+    //QPixmap pixmap("C:\\Users\\seanp\\source\\JpDrawApplication\\build\\mo.png");
+    //painter_2.drawPixmap(0, 0, pixmap);
 }
 
 QImage
@@ -111,8 +116,11 @@ void
 DrawArea::pDrawPoint(QPoint aPoint) {
     auto painter_hard = QPainter(&mHardLayer);
     auto painter_virt = QPainter(&mVirtualLayer);
-    painter_hard.setBrush(QBrush(Qt::black));
-    painter_virt.setBrush(QBrush(Qt::black));
+    QPen pen = QPen(Qt::black, penWidth, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+    //painter_hard.setBrush(QBrush(Qt::black));
+    //painter_virt.setBrush(QBrush(Qt::black));
+    painter_hard.setPen(pen);
+    painter_virt.setPen(pen);
 
     // For now we will just check if it works.
     QVector<QPoint> VectorOfCalcdPoints;
@@ -127,4 +135,9 @@ DrawArea::pDrawPoint(QPoint aPoint) {
     painter_hard.end();
     painter_virt.end();
     this->setPixmap(mHardLayer);
+
+    //QPainter painter(&mHardLayer);
+    //painter.setOpacity(.1);
+    //QPixmap pixmap("C:\\Users\\seanp\\source\\JpDrawApplication\\build\\mo.png");
+    //painter.drawPixmap(0, 0, pixmap);
 }

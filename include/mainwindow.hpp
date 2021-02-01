@@ -15,6 +15,7 @@ class QListWidget;
 
 class DrawArea;
 class QPushButton;
+class QSlider;
 
 const static QString DEBUG_targetFile = "C:\\Users\\seanp\\source\\JpDrawApplication\\build\\mo.png";
 
@@ -62,6 +63,6 @@ private:
     QPushButton* mEnableButton;
     QPushButton* mDisableButton;
     QPushButton* mCompareButton;
-
+    QSlider* mPenWidthSlider;
 };
 #endif // MAINWINDOW_H
