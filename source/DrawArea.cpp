@@ -4,7 +4,10 @@
 #include <QMouseEvent>
 #include <QPixmap>
 
+#include <QDir>
+
 #include "LineMethods.hpp"
+#include "ProcessLayer.hpp"
 #include "Log.hpp"
 
 DrawArea::DrawArea(QWidget* parent)
@@ -13,7 +16,9 @@ DrawArea::DrawArea(QWidget* parent)
       mHardLayer(this->size(), 0),
       mVirtualLayer(this->size(), 0),
       mId(1),
-      mPenWidth(1)
+      mPenWidth(1),
+      mMax_x(-1), mMax_y(-1),
+      mMin_x(INT32_MAX), mMin_y(INT32_MAX) 
 {
     this->clear();
 
@@ -23,6 +28,8 @@ DrawArea::DrawArea(QWidget* parent)
     // Reserve some space in memory to avoid
     // heap allocating more space.
     mVirtualLayerVector.reserve(32);
+
+    loadComparisonImages();
 }
 
 void
@@ -52,20 +59,35 @@ DrawArea::mouseReleaseEvent(QMouseEvent* event) {
     mCurrentlyDrawing = false;
     // Indicate that the mPrevPoint is invalid.
     mPrevPoint = QPoint(-1,-1);
+
+    // Reference@: https://stackoverflow.com/questions/35051482/qt-what-is-the-most-scalable-way-to-iterate-over-a-qimage
+    mMax_x = mMax_y = -1;
+    mMin_x = mMin_y = INT32_MAX;
+    int x, y;
+    QRgb* line = nullptr;
+    auto hardLayerImage = mHardLayer.toImage();
+    for (y = 0; y < hardLayerImage.height(); ++y) {
+        QRgb* line = (QRgb*) hardLayerImage.scanLine(y);
+        for (x = 0; x < hardLayerImage.width(); ++x) {
+            if (line[x] == QColor(Qt::black).rgb()) {
+                if (mMax_x < x) mMax_x = x;
+                if (mMax_y < y) mMax_y = y;
+                if (mMin_x > x) mMin_x = x;
+                if (mMin_y > y) mMin_y = y;
+            }   
+        }
+    }
+    //QImage image = QImage("C:\\Users\\seanp\\source\\JpDrawApplication\\images\\ho.png").scaled(mMax_x - mMin_x, mMax_y - mMin_y);
+    //QPainter painter_2(&mHardLayer);
+    //painter_2.drawImage(QPoint(mMin_x, mMin_y), image);
+    //this->setPixmap(mHardLayer);
+    //painter_2.end();
 }
 
 void
 DrawArea::mouseMoveEvent(QMouseEvent *event) {
-//    QElapsedTimer timer;
-//    timer.start();
-    //qDebug() << "Mouse moved: " << event->pos() << "\n";
-    if(mCurrentlyDrawing) {
-        //QElapsedTimer timer;
-        //timer.start();
-        //qDebug() << "We are dragging!\n";
+    if(mCurrentlyDrawing)
         pDrawPoint(event->pos());
-    }
-//    qInfo() << "Time it took to calculate " << timer.nsecsElapsed() << " nanoseconds\n";
 }
 
 void
@@ -149,4 +171,19 @@ DrawArea::pDrawPoint(QPoint aPoint) {
     //painter.setOpacity(.1);
     //QPixmap pixmap("C:\\Users\\seanp\\source\\JpDrawApplication\\build\\mo.png");
     //painter.drawPixmap(0, 0, pixmap);
+}
+
+#include "opencv2/imgproc.hpp"
+#include "opencv2/imgcodecs.hpp"
+
+void
+DrawArea::loadComparisonImages() {
+    // Reference@: https://forum.qt.io/topic/64817/how-to-read-all-files-from-a-selected-directory-and-use-them-one-by-one/3
+    QString target_directory = "C:\\Users\\seanp\\source\\JpDrawApplication\\images";
+    QDir imageDir(target_directory);
+    QStringList images = imageDir.entryList(QStringList() << "*.png" << "*.PNG", QDir::Files);
+    for (auto png : images) {
+        // qInfo() << imageDir.filePath(png);
+        mComparisonImages.push_back(imageDir.filePath(png));
+    }
 }

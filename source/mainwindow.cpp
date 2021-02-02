@@ -23,13 +23,13 @@ MainWindow::MainWindow(QWidget *parent)
     mDrawArea(nullptr)
 {
     mUi->setupUi(this);
-    mUi->centralwidget->resize(1000, 1000);
+    mUi->centralwidget->resize(750, 750);
 
     mDrawArea = new DrawArea(mUi->centralwidget);
     mDrawArea->setObjectName("DrawArea");
     mDrawArea->setEnabled(true);
     mDrawArea->setCursor(QCursor(Qt::CrossCursor));
-    mDrawArea->resizeDrawArea(QSize(800, 600));
+    mDrawArea->resizeDrawArea(QSize(400, 400));
     mUi->gridLayout->addWidget(mDrawArea, 0,0,1,1);
 
     mListWidget = new QListWidget(mUi->centralwidget);

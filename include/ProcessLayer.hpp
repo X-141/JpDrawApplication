@@ -22,9 +22,6 @@ public:
 	~ProcessLayer() = default;
 
 private:
-	/**
-	* To be tested.
-	*/
 	// References: http://qtandopencv.blogspot.com/2013/08/how-to-convert-between-cvmat-and-qimage.html
 	static cv::Mat qImageToCvMat(QImage& image);
 

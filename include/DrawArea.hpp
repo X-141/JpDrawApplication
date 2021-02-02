@@ -4,6 +4,7 @@
 #include <QLabel>
 #include "DrawLayer.hpp"
 
+class ProcessLayer;
 
 class DrawArea : public QLabel {
     Q_OBJECT
@@ -60,6 +61,13 @@ private:
     // */
     //void pAddNewLayer(QPixmap aPixmap);
 
+    /**
+    * @brief loadComparisonImages
+    * Load from memory a series of characters
+    * to compare with the users drawings.
+    */
+    void loadComparisonImages();
+
 private:
     // Set to true on mouse down. Set to false on mouse up
     bool mCurrentlyDrawing;
@@ -83,7 +91,10 @@ private:
     uint mPenWidth;
     // A vector of images to display depending
     // on how closely they resemble the image the user has drawn.
-    QVector<QImage> mComparisonImages;
+    QVector<ProcessLayer> mComparisonImages;
+
+    // Keep track of the dimensions of the draw space.
+    int mMax_x, mMax_y, mMin_x, mMin_y;
 };
 
 #endif // DRAWAREA_H
