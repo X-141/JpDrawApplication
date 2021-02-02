@@ -3,8 +3,11 @@
 #include <QPainter>
 #include <QMouseEvent>
 #include <QPixmap>
-
 #include <QDir>
+#include <QVector>
+
+#include "opencv2/imgcodecs.hpp"
+#include "opencv2/imgproc.hpp"
 
 #include "LineMethods.hpp"
 #include "ProcessLayer.hpp"
@@ -16,7 +19,7 @@ DrawArea::DrawArea(QWidget* parent)
       mHardLayer(this->size(), 0),
       mVirtualLayer(this->size(), 0),
       mId(1),
-      mPenWidth(1),
+      mPenWidth(30),
       mMax_x(-1), mMax_y(-1),
       mMin_x(INT32_MAX), mMin_y(INT32_MAX) 
 {
@@ -28,6 +31,7 @@ DrawArea::DrawArea(QWidget* parent)
     // Reserve some space in memory to avoid
     // heap allocating more space.
     mVirtualLayerVector.reserve(32);
+    mComparisonImages.reserve(32);
 
     loadComparisonImages();
 }
@@ -78,10 +82,11 @@ DrawArea::mouseReleaseEvent(QMouseEvent* event) {
         }
     }
     //QImage image = QImage("C:\\Users\\seanp\\source\\JpDrawApplication\\images\\ho.png").scaled(mMax_x - mMin_x, mMax_y - mMin_y);
-    //QPainter painter_2(&mHardLayer);
+    QPainter painter_2(&mHardLayer);
     //painter_2.drawImage(QPoint(mMin_x, mMin_y), image);
-    //this->setPixmap(mHardLayer);
-    //painter_2.end();
+    painter_2.drawRect(mMin_x, mMin_y, mMax_x - mMin_x, mMax_y - mMin_y);
+    this->setPixmap(mHardLayer);
+    painter_2.end();
 }
 
 void
@@ -124,10 +129,6 @@ DrawArea::updateDrawArea() {
             painter.drawPixmap(0,0, layers);
     this->setPixmap(mHardLayer);
     painter.end();
-    //QPainter painter_2(&mHardLayer);
-    //painter_2.setOpacity(.1);
-    //QPixmap pixmap("C:\\Users\\seanp\\source\\JpDrawApplication\\build\\mo.png");
-    //painter_2.drawPixmap(0, 0, pixmap);
 }
 
 QImage
@@ -143,13 +144,42 @@ DrawArea::setPenWidth(int width) {
         LOG("ERROR: Tried to set pen width < 1");
 }
 
+int
+DrawArea::compareLayer() {
+    QVector<cv::Mat> processedCompareImages;
+    processedCompareImages.reserve(mComparisonImages.size());
+
+    for (auto preprocImages : mComparisonImages) {
+        processedCompareImages.push_back(
+            qImageToCvMat(preprocImages.scaled(mMax_x - mMin_x, mMax_y - mMin_y)));
+    }
+
+    cv::Mat hardLayerMat = qImageToCvMat(generateImage().copy(mMin_x, mMin_y, mMax_x - mMin_x, mMax_y - mMin_y));
+    cv::Mat diff;
+    int index = 0;
+    int bestValue = INT32_MAX;
+    for (int x = 0; x < processedCompareImages.size(); ++x) {
+        cv::compare(processedCompareImages.at(x), hardLayerMat, diff, cv::CMP_NE);
+        int nz = cv::countNonZero(diff);
+        if (nz < bestValue) {
+            bestValue = nz;
+            index = x;
+        }
+    }
+    qInfo() << "Best value is: " << bestValue;
+    return index;
+}
+
+QImage 
+DrawArea::getComparisonImage(int index) {
+    return mComparisonImages.at(index);
+}
+
 void
 DrawArea::pDrawPoint(QPoint aPoint) {
     auto painter_hard = QPainter(&mHardLayer);
     auto painter_virt = QPainter(&mVirtualLayer);
     QPen pen = QPen(Qt::black, mPenWidth, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
-    //painter_hard.setBrush(QBrush(Qt::black));
-    //painter_virt.setBrush(QBrush(Qt::black));
     painter_hard.setPen(pen);
     painter_virt.setPen(pen);
 
@@ -166,15 +196,7 @@ DrawArea::pDrawPoint(QPoint aPoint) {
     painter_hard.end();
     painter_virt.end();
     this->setPixmap(mHardLayer);
-
-    //QPainter painter(&mHardLayer);
-    //painter.setOpacity(.1);
-    //QPixmap pixmap("C:\\Users\\seanp\\source\\JpDrawApplication\\build\\mo.png");
-    //painter.drawPixmap(0, 0, pixmap);
 }
-
-#include "opencv2/imgproc.hpp"
-#include "opencv2/imgcodecs.hpp"
 
 void
 DrawArea::loadComparisonImages() {
@@ -184,6 +206,6 @@ DrawArea::loadComparisonImages() {
     QStringList images = imageDir.entryList(QStringList() << "*.png" << "*.PNG", QDir::Files);
     for (auto png : images) {
         // qInfo() << imageDir.filePath(png);
-        mComparisonImages.push_back(imageDir.filePath(png));
+        mComparisonImages.push_back(QImage(imageDir.filePath(png)));
     }
 }

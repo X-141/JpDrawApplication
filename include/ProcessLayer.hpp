@@ -20,14 +20,12 @@ public:
 	ProcessLayer(QImage& image);
 	ProcessLayer(const QString& imagePath);
 	~ProcessLayer() = default;
-
-private:
-	// References: http://qtandopencv.blogspot.com/2013/08/how-to-convert-between-cvmat-and-qimage.html
-	static cv::Mat qImageToCvMat(QImage& image);
-
 public:
 	cv::Mat mPngMatrix;
 	// May need a png object.
 };
+
+// References: http://qtandopencv.blogspot.com/2013/08/how-to-convert-between-cvmat-and-qimage.html
+cv::Mat qImageToCvMat(QImage& image);
 
 #endif // !PROCESSLAYER_HPP

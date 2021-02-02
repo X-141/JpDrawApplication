@@ -9,7 +9,7 @@
 * Currently only supports printing to console.
 */
 
-#define DEBUG
+//#define DEBUG
 
 #ifdef DEBUG
 	#define LOG(x) qInfo() << x

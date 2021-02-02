@@ -12,6 +12,7 @@
 #include <QPushButton>
 #include <QDebug>
 #include <QSlider>
+#include <QLabel>
 
 #include "Log.hpp"
 #include "opencv2/core.hpp"
@@ -23,7 +24,6 @@ MainWindow::MainWindow(QWidget *parent)
     mDrawArea(nullptr)
 {
     mUi->setupUi(this);
-    mUi->centralwidget->resize(750, 750);
 
     mDrawArea = new DrawArea(mUi->centralwidget);
     mDrawArea->setObjectName("DrawArea");
@@ -31,6 +31,13 @@ MainWindow::MainWindow(QWidget *parent)
     mDrawArea->setCursor(QCursor(Qt::CrossCursor));
     mDrawArea->resizeDrawArea(QSize(400, 400));
     mUi->gridLayout->addWidget(mDrawArea, 0,0,1,1);
+
+    mPredictionArea = new QLabel(mUi->centralwidget);
+    mPredictionArea->setObjectName("PredictionArea");
+    mPredictionArea->setEnabled(true);
+    mPredictionArea->setCursor(QCursor(Qt::BlankCursor));
+    mPredictionArea->resize(QSize(400, 400));
+    mUi->gridLayout->addWidget(mPredictionArea, 0, 1, 1, 1);
 
     mListWidget = new QListWidget(mUi->centralwidget);
     mListWidget->setObjectName("LayerListWidget");
@@ -80,7 +87,7 @@ MainWindow::MainWindow(QWidget *parent)
     QObject::connect(mPenWidthSlider, SIGNAL(valueChanged(int)),
                      this, SLOT(changePenWidth(int)));
 
-    this->adjustSize();
+    //this->adjustSize();
     this->setWindowFlags(Qt::MSWindowsFixedSizeDialogHint);
 }
 
@@ -147,28 +154,16 @@ MainWindow::disableLayer(bool checked) {
     }
 }
 
-#include "opencv2/imgcodecs.hpp"
-#include "opencv2/imgproc.hpp"
-
 void
 MainWindow::compareLayer(bool checked) {
-    LOG("Selected Compare layer button.\n");
-    auto procLayer_SystemFile = ProcessLayer(DEBUG_targetFile);
-    auto procLayer_HardLayer = ProcessLayer(mDrawArea->generateImage());
-
-    // Reference https://stackoverflow.com/questions/9905093/how-to-check-whether-two-matrices-are-identical-in-opencv
-    cv::imwrite("C:\\Users\\seanp\\source\\JpDrawApplication\\build\\grayscale_systemfile.png", procLayer_SystemFile.mPngMatrix);
-    cv::imwrite("C:\\Users\\seanp\\source\\JpDrawApplication\\build\\grayscale_hardlayer.png", procLayer_HardLayer.mPngMatrix);
-
-    cv::Mat diff;
-    cv::compare(procLayer_SystemFile.mPngMatrix, procLayer_HardLayer.mPngMatrix, diff, cv::CMP_NE);
-    int nz = cv::countNonZero(diff);
-    LOG("DIFF: ");
-    LOG(nz);
-    LOG("\n");
+    LOG("Now comparing layers");
+    int loadIndex = mDrawArea->compareLayer();
+    QImage loadImage = mDrawArea->getComparisonImage(loadIndex);
+    mPredictionArea->setPixmap(QPixmap::fromImage(loadImage));
 }
 
 void
 MainWindow::changePenWidth(int value) {
     mDrawArea->setPenWidth(value);
+    qInfo() << value;
 }

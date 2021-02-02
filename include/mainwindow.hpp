@@ -16,6 +16,7 @@ class QListWidget;
 class DrawArea;
 class QPushButton;
 class QSlider;
+class QLabel;
 
 const static QString DEBUG_targetFile = "C:\\Users\\seanp\\source\\JpDrawApplication\\build\\mo.png";
 
@@ -65,11 +66,13 @@ public slots:
 private:
     Ui::MainWindow *mUi;
     DrawArea* mDrawArea;
+    QLabel* mPredictionArea;
     QListWidget* mListWidget;
 
     QPushButton* mEnableButton;
     QPushButton* mDisableButton;
     QPushButton* mCompareButton;
     QSlider* mPenWidthSlider;
+
 };
 #endif // MAINWINDOW_H

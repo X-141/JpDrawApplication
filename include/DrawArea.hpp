@@ -4,7 +4,7 @@
 #include <QLabel>
 #include "DrawLayer.hpp"
 
-class ProcessLayer;
+//class ProcessLayer;
 
 class DrawArea : public QLabel {
     Q_OBJECT
@@ -41,6 +41,22 @@ public:
     */
     void setPenWidth(int width);
 
+    /**
+    * @brief compareLayer
+    * Takes the currently drawn hardlayer dimensions
+    * and scales the set of comparison images to match.
+    * The important part is that we will compute the comparison
+    * value betweent the hardlayer image and the comparison sets.
+    */
+    int compareLayer();
+
+    /**
+    * @brief getComparisonImage
+    * Grab the comparison image at index. To be used
+    * with value returned from compareLayer()
+    */
+    QImage getComparisonImage(int index);
+
 signals:
     /**
      * @brief layer_update_handle
@@ -51,15 +67,6 @@ signals:
 
 private:
     void pDrawPoint(QPoint aPoint);
-
-    ///**
-    // * @brief _add_new_layer
-    // * @param aPixmap
-    // * Handles the addition of a new layer. Creates
-    // * a QPair of uint and aPixmap and adds it to
-    // * id_layer_pairs.
-    // */
-    //void pAddNewLayer(QPixmap aPixmap);
 
     /**
     * @brief loadComparisonImages
@@ -91,7 +98,7 @@ private:
     uint mPenWidth;
     // A vector of images to display depending
     // on how closely they resemble the image the user has drawn.
-    QVector<ProcessLayer> mComparisonImages;
+    QVector<QImage> mComparisonImages;
 
     // Keep track of the dimensions of the draw space.
     int mMax_x, mMax_y, mMin_x, mMin_y;
