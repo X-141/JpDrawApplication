@@ -155,18 +155,13 @@ MainWindow::compareLayer(bool checked) {
     LOG("Selected Compare layer button.\n");
     auto procLayer_SystemFile = ProcessLayer(DEBUG_targetFile);
     auto procLayer_HardLayer = ProcessLayer(mDrawArea->generateImage());
-    //cv::imwrite("C:\\Users\\seanp\\source\\JpDrawApplication\\build\\testFILE.png", procLayer_SystemFile.mPngMatrix);
 
     // Reference https://stackoverflow.com/questions/9905093/how-to-check-whether-two-matrices-are-identical-in-opencv
-    cv::Mat gray1, gray2;
-    cvtColor(procLayer_HardLayer.mPngMatrix, gray1, cv::COLOR_BGRA2GRAY);
-    cvtColor(procLayer_SystemFile.mPngMatrix, gray2, cv::COLOR_BGRA2GRAY);
-
-    cv::imwrite("C:\\Users\\seanp\\source\\JpDrawApplication\\build\\grayscale_systemfile.png", gray2);
-    cv::imwrite("C:\\Users\\seanp\\source\\JpDrawApplication\\build\\grayscale_hardlayer.png", gray1);
+    cv::imwrite("C:\\Users\\seanp\\source\\JpDrawApplication\\build\\grayscale_systemfile.png", procLayer_SystemFile.mPngMatrix);
+    cv::imwrite("C:\\Users\\seanp\\source\\JpDrawApplication\\build\\grayscale_hardlayer.png", procLayer_HardLayer.mPngMatrix);
 
     cv::Mat diff;
-    cv::compare(gray1, gray2, diff, cv::CMP_NE);
+    cv::compare(procLayer_SystemFile.mPngMatrix, procLayer_HardLayer.mPngMatrix, diff, cv::CMP_NE);
     int nz = cv::countNonZero(diff);
     LOG("DIFF: ");
     LOG(nz);
