@@ -4,6 +4,7 @@
 #include <QLabel>
 #include "DrawLayer.hpp"
 
+//class ProcessLayer;
 
 class DrawArea : public QLabel {
     Q_OBJECT
@@ -23,6 +24,39 @@ public:
 
     void updateDrawArea();
 
+    /**
+    * @brief generateImage
+    * Creates a QImage based on the current
+    * Hardlayer.
+    * Note, we don't use virtual layer since
+    * a virtual layer only contains the currently
+    * active pixels.
+    */
+    QImage generateImage();
+
+    /**
+    * @brief setPenWidth
+    * Modify the width of the line drawn in
+    * the DrawArea layers.
+    */
+    void setPenWidth(int width);
+
+    /**
+    * @brief compareLayer
+    * Takes the currently drawn hardlayer dimensions
+    * and scales the set of comparison images to match.
+    * The important part is that we will compute the comparison
+    * value betweent the hardlayer image and the comparison sets.
+    */
+    int compareLayer();
+
+    /**
+    * @brief getComparisonImage
+    * Grab the comparison image at index. To be used
+    * with value returned from compareLayer()
+    */
+    QImage getComparisonImage(int index);
+
 signals:
     /**
      * @brief layer_update_handle
@@ -35,13 +69,11 @@ private:
     void pDrawPoint(QPoint aPoint);
 
     /**
-     * @brief _add_new_layer
-     * @param aPixmap
-     * Handles the addition of a new layer. Creates
-     * a QPair of uint and aPixmap and adds it to
-     * id_layer_pairs.
-     */
-    void pAddNewLayer(QPixmap aPixmap);
+    * @brief loadComparisonImages
+    * Load from memory a series of characters
+    * to compare with the users drawings.
+    */
+    void loadComparisonImages();
 
 private:
     // Set to true on mouse down. Set to false on mouse up
@@ -62,6 +94,14 @@ private:
     QVector<DrawLayer> mVirtualLayerVector;
     // Incremented when _add_new_layer is called.
     uint mId;
+    // Slide width
+    uint mPenWidth;
+    // A vector of images to display depending
+    // on how closely they resemble the image the user has drawn.
+    QVector<QImage> mComparisonImages;
+
+    // Keep track of the dimensions of the draw space.
+    int mMax_x, mMax_y, mMin_x, mMin_y;
 };
 
 #endif // DRAWAREA_H

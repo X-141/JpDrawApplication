@@ -3,15 +3,25 @@
 #include <QPainter>
 #include <QMouseEvent>
 #include <QPixmap>
+#include <QDir>
+#include <QVector>
+
+#include "opencv2/imgcodecs.hpp"
+#include "opencv2/imgproc.hpp"
 
 #include "LineMethods.hpp"
+#include "ProcessLayer.hpp"
+#include "Log.hpp"
 
 DrawArea::DrawArea(QWidget* parent)
     : QLabel(parent),
       mCurrentlyDrawing(false),
       mHardLayer(this->size(), 0),
       mVirtualLayer(this->size(), 0),
-      mId(1)
+      mId(1),
+      mPenWidth(30),
+      mMax_x(-1), mMax_y(-1),
+      mMin_x(INT32_MAX), mMin_y(INT32_MAX) 
 {
     this->clear();
 
@@ -21,6 +31,9 @@ DrawArea::DrawArea(QWidget* parent)
     // Reserve some space in memory to avoid
     // heap allocating more space.
     mVirtualLayerVector.reserve(32);
+    mComparisonImages.reserve(32);
+
+    loadComparisonImages();
 }
 
 void
@@ -50,20 +63,36 @@ DrawArea::mouseReleaseEvent(QMouseEvent* event) {
     mCurrentlyDrawing = false;
     // Indicate that the mPrevPoint is invalid.
     mPrevPoint = QPoint(-1,-1);
+
+    // Reference@: https://stackoverflow.com/questions/35051482/qt-what-is-the-most-scalable-way-to-iterate-over-a-qimage
+    mMax_x = mMax_y = -1;
+    mMin_x = mMin_y = INT32_MAX;
+    int x, y;
+    QRgb* line = nullptr;
+    auto hardLayerImage = mHardLayer.toImage();
+    for (y = 0; y < hardLayerImage.height(); ++y) {
+        QRgb* line = (QRgb*) hardLayerImage.scanLine(y);
+        for (x = 0; x < hardLayerImage.width(); ++x) {
+            if (line[x] == QColor(Qt::black).rgb()) {
+                if (mMax_x < x) mMax_x = x;
+                if (mMax_y < y) mMax_y = y;
+                if (mMin_x > x) mMin_x = x;
+                if (mMin_y > y) mMin_y = y;
+            }   
+        }
+    }
+    //QImage image = QImage("C:\\Users\\seanp\\source\\JpDrawApplication\\images\\ho.png").scaled(mMax_x - mMin_x, mMax_y - mMin_y);
+    QPainter painter_2(&mHardLayer);
+    //painter_2.drawImage(QPoint(mMin_x, mMin_y), image);
+    painter_2.drawRect(mMin_x, mMin_y, mMax_x - mMin_x, mMax_y - mMin_y);
+    this->setPixmap(mHardLayer);
+    painter_2.end();
 }
 
 void
 DrawArea::mouseMoveEvent(QMouseEvent *event) {
-//    QElapsedTimer timer;
-//    timer.start();
-    //qDebug() << "Mouse moved: " << event->pos() << "\n";
-    if(mCurrentlyDrawing) {
-        //QElapsedTimer timer;
-        //timer.start();
-        //qDebug() << "We are dragging!\n";
+    if(mCurrentlyDrawing)
         pDrawPoint(event->pos());
-    }
-//    qInfo() << "Time it took to calculate " << timer.nsecsElapsed() << " nanoseconds\n";
 }
 
 void
@@ -102,12 +131,57 @@ DrawArea::updateDrawArea() {
     painter.end();
 }
 
+QImage
+DrawArea::generateImage() {
+    return mHardLayer.toImage();
+}
+
+void
+DrawArea::setPenWidth(int width) {
+    if (width >= 1)
+        mPenWidth = width;
+    else
+        LOG("ERROR: Tried to set pen width < 1");
+}
+
+int
+DrawArea::compareLayer() {
+    QVector<cv::Mat> processedCompareImages;
+    processedCompareImages.reserve(mComparisonImages.size());
+
+    for (auto preprocImages : mComparisonImages) {
+        processedCompareImages.push_back(
+            qImageToCvMat(preprocImages.scaled(mMax_x - mMin_x, mMax_y - mMin_y)));
+    }
+
+    cv::Mat hardLayerMat = qImageToCvMat(generateImage().copy(mMin_x, mMin_y, mMax_x - mMin_x, mMax_y - mMin_y));
+    cv::Mat diff;
+    int index = 0;
+    int bestValue = INT32_MAX;
+    for (int x = 0; x < processedCompareImages.size(); ++x) {
+        cv::compare(processedCompareImages.at(x), hardLayerMat, diff, cv::CMP_NE);
+        int nz = cv::countNonZero(diff);
+        if (nz < bestValue) {
+            bestValue = nz;
+            index = x;
+        }
+    }
+    qInfo() << "Best value is: " << bestValue;
+    return index;
+}
+
+QImage 
+DrawArea::getComparisonImage(int index) {
+    return mComparisonImages.at(index);
+}
+
 void
 DrawArea::pDrawPoint(QPoint aPoint) {
     auto painter_hard = QPainter(&mHardLayer);
     auto painter_virt = QPainter(&mVirtualLayer);
-    painter_hard.setBrush(QBrush(Qt::black));
-    painter_virt.setBrush(QBrush(Qt::black));
+    QPen pen = QPen(Qt::black, mPenWidth, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+    painter_hard.setPen(pen);
+    painter_virt.setPen(pen);
 
     // For now we will just check if it works.
     QVector<QPoint> VectorOfCalcdPoints;
@@ -122,4 +196,16 @@ DrawArea::pDrawPoint(QPoint aPoint) {
     painter_hard.end();
     painter_virt.end();
     this->setPixmap(mHardLayer);
+}
+
+void
+DrawArea::loadComparisonImages() {
+    // Reference@: https://forum.qt.io/topic/64817/how-to-read-all-files-from-a-selected-directory-and-use-them-one-by-one/3
+    QString target_directory = "C:\\Users\\seanp\\source\\JpDrawApplication\\images";
+    QDir imageDir(target_directory);
+    QStringList images = imageDir.entryList(QStringList() << "*.png" << "*.PNG", QDir::Files);
+    for (auto png : images) {
+        // qInfo() << imageDir.filePath(png);
+        mComparisonImages.push_back(QImage(imageDir.filePath(png)));
+    }
 }

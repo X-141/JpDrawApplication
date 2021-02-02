@@ -15,6 +15,10 @@ class QListWidget;
 
 class DrawArea;
 class QPushButton;
+class QSlider;
+class QLabel;
+
+const static QString DEBUG_targetFile = "C:\\Users\\seanp\\source\\JpDrawApplication\\build\\mo.png";
 
 class MainWindow : public QMainWindow
 {
@@ -45,13 +49,30 @@ public slots:
      */
     void disableLayer(bool);
 
+    /**
+    * @brief compareLayer
+    * Compares the currently drawn layer
+    * to a layer loaded from system memory.
+    */
+    void compareLayer(bool);
+
+    /**
+    * @brief changePenWidth
+    * This slot will change the width of the
+    * pen for the DrawArea.
+    */
+    void changePenWidth(int);
+
 private:
-    Ui::MainWindow *ui;
-    DrawArea* drawArea;
-    QListWidget* listwidget;
+    Ui::MainWindow *mUi;
+    DrawArea* mDrawArea;
+    QLabel* mPredictionArea;
+    QListWidget* mListWidget;
 
     QPushButton* mEnableButton;
     QPushButton* mDisableButton;
+    QPushButton* mCompareButton;
+    QSlider* mPenWidthSlider;
 
 };
 #endif // MAINWINDOW_H
