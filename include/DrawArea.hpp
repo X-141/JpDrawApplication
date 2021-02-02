@@ -33,6 +33,13 @@ public:
     */
     QImage generateImage();
 
+    /**
+    * @brief setPenWidth
+    * Modify the width of the line drawn in
+    * the DrawArea layers.
+    */
+    void setPenWidth(int width);
+
 signals:
     /**
      * @brief layer_update_handle
@@ -72,9 +79,11 @@ private:
     QVector<DrawLayer> mVirtualLayerVector;
     // Incremented when _add_new_layer is called.
     uint mId;
-
     // Slide width
-    uint penWidth;
+    uint mPenWidth;
+    // A vector of images to display depending
+    // on how closely they resemble the image the user has drawn.
+    QVector<QImage> mComparisonImages;
 };
 
 #endif // DRAWAREA_H

@@ -55,10 +55,17 @@ public slots:
     */
     void compareLayer(bool);
 
+    /**
+    * @brief changePenWidth
+    * This slot will change the width of the
+    * pen for the DrawArea.
+    */
+    void changePenWidth(int);
+
 private:
-    Ui::MainWindow *ui;
-    DrawArea* drawArea;
-    QListWidget* listwidget;
+    Ui::MainWindow *mUi;
+    DrawArea* mDrawArea;
+    QListWidget* mListWidget;
 
     QPushButton* mEnableButton;
     QPushButton* mDisableButton;

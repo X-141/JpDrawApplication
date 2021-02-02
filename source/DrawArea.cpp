@@ -5,6 +5,7 @@
 #include <QPixmap>
 
 #include "LineMethods.hpp"
+#include "Log.hpp"
 
 DrawArea::DrawArea(QWidget* parent)
     : QLabel(parent),
@@ -12,7 +13,7 @@ DrawArea::DrawArea(QWidget* parent)
       mHardLayer(this->size(), 0),
       mVirtualLayer(this->size(), 0),
       mId(1),
-      penWidth(40)
+      mPenWidth(1)
 {
     this->clear();
 
@@ -113,10 +114,18 @@ DrawArea::generateImage() {
 }
 
 void
+DrawArea::setPenWidth(int width) {
+    if (width >= 1)
+        mPenWidth = width;
+    else
+        LOG("ERROR: Tried to set pen width < 1");
+}
+
+void
 DrawArea::pDrawPoint(QPoint aPoint) {
     auto painter_hard = QPainter(&mHardLayer);
     auto painter_virt = QPainter(&mVirtualLayer);
-    QPen pen = QPen(Qt::black, penWidth, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+    QPen pen = QPen(Qt::black, mPenWidth, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
     //painter_hard.setBrush(QBrush(Qt::black));
     //painter_virt.setBrush(QBrush(Qt::black));
     painter_hard.setPen(pen);
