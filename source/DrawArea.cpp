@@ -201,7 +201,8 @@ DrawArea::pDrawPoint(QPoint aPoint) {
 void
 DrawArea::loadComparisonImages() {
     // Reference@: https://forum.qt.io/topic/64817/how-to-read-all-files-from-a-selected-directory-and-use-them-one-by-one/3
-    QString target_directory = "C:\\Users\\seanp\\source\\JpDrawApplication\\images";
+//    QString target_directory = "C:\\Users\\seanp\\source\\JpDrawApplication\\images";
+    QString target_directory = "../images";
     QDir imageDir(target_directory);
     QStringList images = imageDir.entryList(QStringList() << "*.png" << "*.PNG", QDir::Files);
     for (auto png : images) {

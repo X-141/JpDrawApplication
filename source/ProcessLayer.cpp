@@ -30,7 +30,7 @@ ProcessLayer::ProcessLayer(const QString& imagePath)
 
 
 cv::Mat 
-qImageToCvMat(QImage& image) {
+qImageToCvMat(QImage image) {
 	LOG("Converting QImage to CV Matrix Format.");
 	// We have to clone the matrix. See https://stackoverflow.com/questions/11170485/qimage-to-cvmat-convertion-strange-behaviour
 	cv::Mat unaltered_mat, grey_mat;

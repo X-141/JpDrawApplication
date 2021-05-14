@@ -26,6 +26,6 @@ public:
 };
 
 // References: http://qtandopencv.blogspot.com/2013/08/how-to-convert-between-cvmat-and-qimage.html
-cv::Mat qImageToCvMat(QImage& image);
-
+//cv::Mat qImageToCvMat(QImage& image);
+cv::Mat qImageToCvMat(QImage image);
 #endif // !PROCESSLAYER_HPP
