@@ -178,9 +178,11 @@ DrawArea::compareLayer() {
     output.convertTo(output, CV_32F);
     qInfo() << flat_hardLayerMat.rows << " " << flat_hardLayerMat.cols;
     qInfo() << input.rows << " " << input.cols;
-    mKnn->findNearest(input, 24, output);
+    for(int k = 0; k < 64; k++) {
+        mKnn->findNearest(input, 64, output);
+        qInfo() << "Calculated Label: " << (int)output.at<float>(0) << "w/ value " << k;
+    }
 
-    qInfo() << "Calculated Label: " << (int)output.at<float>(0);
     // We will return 1 for now. Since we are modifying the code
     // to use knn instead of the primitive method above.
     return 0;
