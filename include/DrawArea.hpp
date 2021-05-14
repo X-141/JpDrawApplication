@@ -4,6 +4,7 @@
 #include <QLabel>
 #include "DrawLayer.hpp"
 
+#include "opencv2/ml.hpp"
 //class ProcessLayer;
 
 class DrawArea : public QLabel {
@@ -102,6 +103,8 @@ private:
 
     // Keep track of the dimensions of the draw space.
     int mMax_x, mMax_y, mMin_x, mMin_y;
+
+    cv::Ptr<cv::ml::KNearest> mKnn;
 };
 
 #endif // DRAWAREA_H

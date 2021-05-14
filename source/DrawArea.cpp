@@ -9,6 +9,7 @@
 #include "opencv2/imgcodecs.hpp"
 #include "opencv2/imgproc.hpp"
 
+
 #include "LineMethods.hpp"
 #include "ProcessLayer.hpp"
 #include "Log.hpp"
@@ -21,7 +22,8 @@ DrawArea::DrawArea(QWidget* parent)
       mId(1),
       mPenWidth(30),
       mMax_x(-1), mMax_y(-1),
-      mMin_x(INT32_MAX), mMin_y(INT32_MAX) 
+      mMin_x(INT32_MAX), mMin_y(INT32_MAX),
+      mKnn(cv::ml::KNearest::load("knn_data_60000.opknn"))
 {
     this->clear();
 
@@ -65,28 +67,28 @@ DrawArea::mouseReleaseEvent(QMouseEvent* event) {
     mPrevPoint = QPoint(-1,-1);
 
     // Reference@: https://stackoverflow.com/questions/35051482/qt-what-is-the-most-scalable-way-to-iterate-over-a-qimage
-    mMax_x = mMax_y = -1;
-    mMin_x = mMin_y = INT32_MAX;
-    int x, y;
-    QRgb* line = nullptr;
-    auto hardLayerImage = mHardLayer.toImage();
-    for (y = 0; y < hardLayerImage.height(); ++y) {
-        QRgb* line = (QRgb*) hardLayerImage.scanLine(y);
-        for (x = 0; x < hardLayerImage.width(); ++x) {
-            if (line[x] == QColor(Qt::black).rgb()) {
-                if (mMax_x < x) mMax_x = x;
-                if (mMax_y < y) mMax_y = y;
-                if (mMin_x > x) mMin_x = x;
-                if (mMin_y > y) mMin_y = y;
-            }   
-        }
-    }
+//    mMax_x = mMax_y = -1;
+//    mMin_x = mMin_y = INT32_MAX;
+//    int x, y;
+//    QRgb* line = nullptr;
+//    auto hardLayerImage = mHardLayer.toImage();
+//    for (y = 0; y < hardLayerImage.height(); ++y) {
+//        QRgb* line = (QRgb*) hardLayerImage.scanLine(y);
+//        for (x = 0; x < hardLayerImage.width(); ++x) {
+//            if (line[x] == QColor(Qt::black).rgb()) {
+//                if (mMax_x < x) mMax_x = x;
+//                if (mMax_y < y) mMax_y = y;
+//                if (mMin_x > x) mMin_x = x;
+//                if (mMin_y > y) mMin_y = y;
+//            }
+//        }
+//    }
     //QImage image = QImage("C:\\Users\\seanp\\source\\JpDrawApplication\\images\\ho.png").scaled(mMax_x - mMin_x, mMax_y - mMin_y);
-    QPainter painter_2(&mHardLayer);
-    //painter_2.drawImage(QPoint(mMin_x, mMin_y), image);
-    painter_2.drawRect(mMin_x, mMin_y, mMax_x - mMin_x, mMax_y - mMin_y);
-    this->setPixmap(mHardLayer);
-    painter_2.end();
+//    QPainter painter_2(&mHardLayer);
+//    //painter_2.drawImage(QPoint(mMin_x, mMin_y), image);
+//    painter_2.drawRect(mMin_x, mMin_y, mMax_x - mMin_x, mMax_y - mMin_y);
+//    this->setPixmap(mHardLayer);
+//    painter_2.end();
 }
 
 void
@@ -149,25 +151,39 @@ DrawArea::compareLayer() {
     QVector<cv::Mat> processedCompareImages;
     processedCompareImages.reserve(mComparisonImages.size());
 
-    for (auto preprocImages : mComparisonImages) {
+    for (const auto& preprocImages : mComparisonImages) {
         processedCompareImages.push_back(
-            qImageToCvMat(preprocImages.scaled(mMax_x - mMin_x, mMax_y - mMin_y)));
+            qImageToCvMat(preprocImages));
     }
 
-    cv::Mat hardLayerMat = qImageToCvMat(generateImage().copy(mMin_x, mMin_y, mMax_x - mMin_x, mMax_y - mMin_y));
-    cv::Mat diff;
-    int index = 0;
-    int bestValue = INT32_MAX;
-    for (int x = 0; x < processedCompareImages.size(); ++x) {
-        cv::compare(processedCompareImages.at(x), hardLayerMat, diff, cv::CMP_NE);
-        int nz = cv::countNonZero(diff);
-        if (nz < bestValue) {
-            bestValue = nz;
-            index = x;
-        }
-    }
-    qInfo() << "Best value is: " << bestValue;
-    return index;
+    // First we need to scale the image to a 28 x 28, then convert it into an array
+    // then we need to load in the .npz file that has our knn trained model.
+    // for now print out the label.
+
+    // we will get the entire draw area.
+    cv::Mat hardLayerMat = qImageToCvMat(generateImage().copy(0,0, 400, 400));
+    // for our image we do need to invert the colors from white-bg black-fg to white-fg black-bg
+    cv::imwrite("PRE_TEST.png", hardLayerMat);
+    cv::bitwise_not(hardLayerMat, hardLayerMat);
+    cv::resize(hardLayerMat, hardLayerMat, cv::Size(28, 28));
+    hardLayerMat.convertTo(hardLayerMat, CV_32F);
+    cv::Mat flat_hardLayerMat = hardLayerMat.reshape(0, 1);
+
+    cv::imwrite("POST_TEST.png", hardLayerMat);
+
+    cv::Mat input, output;
+    input.push_back(flat_hardLayerMat);
+
+    input.convertTo(input, CV_32F);
+    output.convertTo(output, CV_32F);
+    qInfo() << flat_hardLayerMat.rows << " " << flat_hardLayerMat.cols;
+    qInfo() << input.rows << " " << input.cols;
+    mKnn->findNearest(input, 24, output);
+
+    qInfo() << "Calculated Label: " << (int)output.at<float>(0);
+    // We will return 1 for now. Since we are modifying the code
+    // to use knn instead of the primitive method above.
+    return 0;
 }
 
 QImage 
