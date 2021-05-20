@@ -2,6 +2,7 @@
 #define DRAWAREA_H
 
 #include <QLabel>
+#include <QMap>
 #include "DrawLayer.hpp"
 
 #include "opencv2/ml.hpp"
@@ -99,10 +100,8 @@ private:
     uint mPenWidth;
     // A vector of images to display depending
     // on how closely they resemble the image the user has drawn.
-    QVector<QImage> mComparisonImages;
-
-    // Keep track of the dimensions of the draw space.
-    int mMax_x, mMax_y, mMin_x, mMin_y;
+    // QVector<QImage> mComparisonImages;
+    QMap<int, QImage> mComparisonImagesDict;
 
     cv::Ptr<cv::ml::KNearest> mKnn;
 };

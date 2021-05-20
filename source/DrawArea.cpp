@@ -5,6 +5,7 @@
 #include <QPixmap>
 #include <QDir>
 #include <QVector>
+#include <QRegularExpression>
 
 #include "opencv2/imgcodecs.hpp"
 #include "opencv2/imgproc.hpp"
@@ -21,8 +22,6 @@ DrawArea::DrawArea(QWidget* parent)
       mVirtualLayer(this->size(), 0),
       mId(1),
       mPenWidth(30),
-      mMax_x(-1), mMax_y(-1),
-      mMin_x(INT32_MAX), mMin_y(INT32_MAX),
       mKnn(cv::ml::KNearest::load("knn_data_60000.opknn"))
 {
     this->clear();
@@ -30,10 +29,7 @@ DrawArea::DrawArea(QWidget* parent)
     mHardLayer.fill(); // set to white.
     this->setPixmap(mHardLayer);
 
-    // Reserve some space in memory to avoid
-    // heap allocating more space.
     mVirtualLayerVector.reserve(32);
-    mComparisonImages.reserve(32);
 
     loadComparisonImages();
 }
@@ -65,30 +61,6 @@ DrawArea::mouseReleaseEvent(QMouseEvent* event) {
     mCurrentlyDrawing = false;
     // Indicate that the mPrevPoint is invalid.
     mPrevPoint = QPoint(-1,-1);
-
-    // Reference@: https://stackoverflow.com/questions/35051482/qt-what-is-the-most-scalable-way-to-iterate-over-a-qimage
-//    mMax_x = mMax_y = -1;
-//    mMin_x = mMin_y = INT32_MAX;
-//    int x, y;
-//    QRgb* line = nullptr;
-//    auto hardLayerImage = mHardLayer.toImage();
-//    for (y = 0; y < hardLayerImage.height(); ++y) {
-//        QRgb* line = (QRgb*) hardLayerImage.scanLine(y);
-//        for (x = 0; x < hardLayerImage.width(); ++x) {
-//            if (line[x] == QColor(Qt::black).rgb()) {
-//                if (mMax_x < x) mMax_x = x;
-//                if (mMax_y < y) mMax_y = y;
-//                if (mMin_x > x) mMin_x = x;
-//                if (mMin_y > y) mMin_y = y;
-//            }
-//        }
-//    }
-    //QImage image = QImage("C:\\Users\\seanp\\source\\JpDrawApplication\\images\\ho.png").scaled(mMax_x - mMin_x, mMax_y - mMin_y);
-//    QPainter painter_2(&mHardLayer);
-//    //painter_2.drawImage(QPoint(mMin_x, mMin_y), image);
-//    painter_2.drawRect(mMin_x, mMin_y, mMax_x - mMin_x, mMax_y - mMin_y);
-//    this->setPixmap(mHardLayer);
-//    painter_2.end();
 }
 
 void
@@ -148,14 +120,6 @@ DrawArea::setPenWidth(int width) {
 
 int
 DrawArea::compareLayer() {
-    QVector<cv::Mat> processedCompareImages;
-    processedCompareImages.reserve(mComparisonImages.size());
-
-    for (const auto& preprocImages : mComparisonImages) {
-        processedCompareImages.push_back(
-            qImageToCvMat(preprocImages));
-    }
-
     // First we need to scale the image to a 28 x 28, then convert it into an array
     // then we need to load in the .npz file that has our knn trained model.
     // for now print out the label.
@@ -180,17 +144,18 @@ DrawArea::compareLayer() {
     qInfo() << input.rows << " " << input.cols;
     for(int k = 0; k < 64; k++) {
         mKnn->findNearest(input, 64, output);
-        qInfo() << "Calculated Label: " << (int)output.at<float>(0) << "w/ value " << k;
+        qInfo() << "Calculated Label: " << (    int)output.at<float>(0) << "w/ value " << k;
     }
 
     // We will return 1 for now. Since we are modifying the code
     // to use knn instead of the primitive method above.
-    return 0;
+    return (int)output.at<float>(0);
 }
 
 QImage 
 DrawArea::getComparisonImage(int index) {
-    return mComparisonImages.at(index);
+//    return mComparisonImages.at(index);
+    return mComparisonImagesDict[index];
 }
 
 void
@@ -220,11 +185,14 @@ void
 DrawArea::loadComparisonImages() {
     // Reference@: https://forum.qt.io/topic/64817/how-to-read-all-files-from-a-selected-directory-and-use-them-one-by-one/3
 //    QString target_directory = "C:\\Users\\seanp\\source\\JpDrawApplication\\images";
-    QString target_directory = "../images";
+    QString target_directory = "../images/digits/";
     QDir imageDir(target_directory);
     QStringList images = imageDir.entryList(QStringList() << "*.png" << "*.PNG", QDir::Files);
+
+    QRegularExpression reg("(?<number>\\d).png");
     for (auto png : images) {
-        // qInfo() << imageDir.filePath(png);
-        mComparisonImages.push_back(QImage(imageDir.filePath(png)));
+        auto match = reg.match(png);
+        qInfo() << match.captured("number");
+        mComparisonImagesDict.insert(match.captured("number").toInt(), QImage(imageDir.filePath(png)));
     }
 }
