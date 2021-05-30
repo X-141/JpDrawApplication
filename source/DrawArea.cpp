@@ -10,7 +10,6 @@
 #include "opencv2/imgcodecs.hpp"
 #include "opencv2/imgproc.hpp"
 
-
 #include "LineMethods.hpp"
 #include "ProcessLayer.hpp"
 #include "Log.hpp"
@@ -82,16 +81,6 @@ DrawArea::resizeDrawArea(QSize aSize) {
     this->setPixmap(mHardLayer);
 }
 
-const QVector<DrawLayer>&
-DrawArea::getListOfLayers() const {
-    return mVirtualLayerVector;
-}
-
-DrawLayer&
-DrawArea::getLayerById(uint aId) {
-    return mVirtualLayerVector[aId-1];
-}
-
 void
 DrawArea::updateDrawArea() {
     this->clear();
@@ -156,6 +145,15 @@ QImage
 DrawArea::getComparisonImage(int index) {
 //    return mComparisonImages.at(index);
     return mComparisonImagesDict[index];
+}
+
+void
+DrawArea::undoLayer() {
+    uint vectorSize = mVirtualLayerVector.size();
+    if (vectorSize) {
+        mVirtualLayerVector.remove(vectorSize - 1);
+        updateDrawArea();
+    }
 }
 
 void

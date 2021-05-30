@@ -20,10 +20,6 @@ public:
 
     void resizeDrawArea(QSize aSize);
 
-    const QVector<DrawLayer>& getListOfLayers() const;
-
-    DrawLayer& getLayerById(uint aId);
-
     void updateDrawArea();
 
     /**
@@ -58,6 +54,14 @@ public:
     * with value returned from compareLayer()
     */
     QImage getComparisonImage(int index);
+
+    /**
+    * @brief undoLayer
+    * Remove from mVirtualLayerVector the layer
+    * at the head. Note, this does not disable
+    * the layer, but instead removes it.
+    */
+    void undoLayer();
 
 signals:
     /**

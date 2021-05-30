@@ -11,14 +11,11 @@ QT_END_NAMESPACE
 class QPoint;
 class QPainter;
 class QPixmap;
-class QListWidget;
 
 class DrawArea;
 class QPushButton;
 class QSlider;
 class QLabel;
-
-const static QString DEBUG_targetFile = "C:\\Users\\seanp\\source\\JpDrawApplication\\build\\mo.png";
 
 class MainWindow : public QMainWindow
 {
@@ -29,25 +26,6 @@ public:
     ~MainWindow();
 
 public slots:
-    /**
-     * @brief updateLayerList
-     * Update the list of layers currently in the draw area.
-     */
-    void updateLayerList();
-
-    /**
-     * @brief enableLayer
-     * Handles adding a layer back to
-     * the draw area.
-     */
-    void enableLayer(bool);
-
-    /**
-     * @brief disableLayer
-     * Handles removing a layer from
-     * the draw area.
-     */
-    void disableLayer(bool);
 
     /**
     * @brief compareLayer
@@ -63,16 +41,21 @@ public slots:
     */
     void changePenWidth(int);
 
+    /**
+    * @brief keyPressEvent
+    * Capture key combinations:
+    * ctrl-z : undo
+    */
+    void keyPressEvent(QKeyEvent* event) override;
+    void keyReleaseEvent(QKeyEvent* event) override;
+
 private:
     Ui::MainWindow *mUi;
     DrawArea* mDrawArea;
     QLabel* mPredictionArea;
-    QListWidget* mListWidget;
-
-    QPushButton* mEnableButton;
-    QPushButton* mDisableButton;
     QPushButton* mCompareButton;
     QSlider* mPenWidthSlider;
 
+    bool mCtrlKey_modifier;
 };
 #endif // MAINWINDOW_H

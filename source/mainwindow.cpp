@@ -15,8 +15,6 @@
 #include <QLabel>
 
 #include "Log.hpp"
-#include "opencv2/core.hpp"
-
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -39,23 +37,6 @@ MainWindow::MainWindow(QWidget *parent)
     mPredictionArea->resize(QSize(400, 400));
     mUi->gridLayout->addWidget(mPredictionArea, 0, 1, 1, 1);
 
-    mListWidget = new QListWidget(mUi->centralwidget);
-    mListWidget->setObjectName("LayerListWidget");
-    mListWidget->setEnabled(true);
-    mUi->gridLayout->addWidget(mListWidget,1,0,1,1);
-
-    mEnableButton = new QPushButton(mUi->centralwidget);
-    mEnableButton->setObjectName("EnableLayerButton");
-    mEnableButton->setText("Enable Layer");
-    mEnableButton->setEnabled(true);
-    mUi->gridLayout->addWidget(mEnableButton, 2,0,1,1);
-
-    mDisableButton = new QPushButton(mUi->centralwidget);
-    mDisableButton->setObjectName("DisableLayerButton");
-    mDisableButton->setText("Disable Layer");
-    mDisableButton->setEnabled(true);
-    mUi->gridLayout->addWidget(mDisableButton, 3,0,1,1);
-
     mCompareButton = new QPushButton(mUi->centralwidget);
     mCompareButton->setObjectName("CompareLayerButton");
     mCompareButton->setText("Compare Layer");
@@ -70,24 +51,13 @@ MainWindow::MainWindow(QWidget *parent)
     mPenWidthSlider->setMaximum(100);
     mUi->gridLayout->addWidget(mPenWidthSlider, 5, 0, 1, 1);
 
-    // Whenever, we add a layer to drawArea, we send a signal to
-    // update
-    QObject::connect(mDrawArea, SIGNAL(layerUpdateHandle(void)),
-                     this, SLOT(updateLayerList(void)));
-
-    QObject::connect(mEnableButton, SIGNAL(clicked(bool)),
-                     this, SLOT(enableLayer(bool)));
-
-    QObject::connect(mDisableButton, SIGNAL(clicked(bool)),
-                     this, SLOT(disableLayer(bool)));
-
     QObject::connect(mCompareButton, SIGNAL(clicked(bool)),
                      this, SLOT(compareLayer(bool)));
 
     QObject::connect(mPenWidthSlider, SIGNAL(valueChanged(int)),
                      this, SLOT(changePenWidth(int)));
 
-    //this->adjustSize();
+    this->adjustSize();
     this->setWindowFlags(Qt::MSWindowsFixedSizeDialogHint);
 }
 
@@ -95,63 +65,8 @@ MainWindow::~MainWindow()
 {
     delete mUi;
     delete mDrawArea;
-    delete mListWidget;
-}
-
-void
-MainWindow::updateLayerList() {
-    //qInfo() << "We received an update!";
-    LOG("We received an update!");
-    static uint lastAddedLayerID;
-    const auto& layer_vector = mDrawArea->getListOfLayers();
-    for(const auto& layer: layer_vector) {
-        if(lastAddedLayerID < layer.getId()) {
-            QListWidgetItem* item = new QListWidgetItem(mListWidget);
-            if(layer.isEnabled())
-                item->setForeground(Qt::blue);
-            else
-                item->setForeground(Qt::red);
-            item->setText(QString::number(layer.getId()));
-            lastAddedLayerID = layer.getId();
-        }
-    }
-}
-
-void
-MainWindow::enableLayer(bool checked) {
-    //qInfo() << "Add layer back!\n";
-    LOG("Add layer back!\n");
-    if(mListWidget) {
-        auto selected_item = mListWidget->currentItem();
-        auto& layer = mDrawArea->getLayerById(selected_item->text().toUInt());
-        if(!layer.isEnabled()) {
-            layer.setEnableStatus(true);
-            mDrawArea->updateDrawArea();
-            selected_item->setForeground(Qt::blue);
-        }
-    }
-}
-
-void
-MainWindow::disableLayer(bool checked) {
-    //qInfo() << "Removing layer!\n";
-    LOG("Removing Layer!\n");
-    if(mListWidget) {
-        auto selected_item = mListWidget->currentItem();
-
-        if (!selected_item) {
-            LOG("listwidget current item is NULL.\n");
-            return;
-        }
-
-        auto& layer = mDrawArea->getLayerById(selected_item->text().toUInt());
-
-        if(layer.isEnabled()) {
-            layer.setEnableStatus(false);
-            mDrawArea->updateDrawArea();
-            selected_item->setForeground(Qt::red);
-        }
-    }
+    delete mCompareButton;
+    delete mPenWidthSlider;
 }
 
 void
@@ -166,4 +81,33 @@ void
 MainWindow::changePenWidth(int value) {
     mDrawArea->setPenWidth(value);
     qInfo() << value;
+}
+
+void
+MainWindow::keyPressEvent(QKeyEvent* event) {
+    LOG("Handling key press event");
+    switch (event->key()) {
+        case Qt::Key_Control:
+            LOG("Control key pressed!");
+            mCtrlKey_modifier = true;
+            break;
+        case Qt::Key_Z:
+            LOG("Z key pressed!");
+            // Make sure user is pressing ctrl and that the draw area is
+            // not null
+            if (mCtrlKey_modifier && mDrawArea) {
+                LOG("Performing undo operation.");
+                mDrawArea->undoLayer();
+            }
+            break;
+        default:
+            break;
+    };
+}
+
+void
+MainWindow::keyReleaseEvent(QKeyEvent* event) {
+    LOG("Handling key release event");
+    if (event->key() == Qt::Key_Control)
+        mCtrlKey_modifier = false;
 }
