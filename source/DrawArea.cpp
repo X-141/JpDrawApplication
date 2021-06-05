@@ -14,6 +14,8 @@
 #include "ProcessLayer.hpp"
 #include "Log.hpp"
 
+std::string resourcePath = "../resource/";
+
 DrawArea::DrawArea(QWidget* parent)
     : QLabel(parent),
       mCurrentlyDrawing(false),
@@ -21,7 +23,8 @@ DrawArea::DrawArea(QWidget* parent)
       mVirtualLayer(this->size(), 0),
       mId(1),
       mPenWidth(30),
-      mKnn(cv::ml::KNearest::load("knn_data_60000.opknn"))
+      mKnn(cv::ml::KNearest::load(resourcePath + "kNN_ETL_Subset.opknn")),
+      mKnnDictFilepath(resourcePath + "knnDictionary.txt")
 {
     this->clear();
 
@@ -109,16 +112,12 @@ DrawArea::setPenWidth(int width) {
 
 int
 DrawArea::compareLayer() {
-    // First we need to scale the image to a 28 x 28, then convert it into an array
-    // then we need to load in the .npz file that has our knn trained model.
-    // for now print out the label.
-
     // we will get the entire draw area.
     cv::Mat hardLayerMat = qImageToCvMat(generateImage().copy(0,0, 400, 400));
     // for our image we do need to invert the colors from white-bg black-fg to white-fg black-bg
     cv::imwrite("PRE_TEST.png", hardLayerMat);
     cv::bitwise_not(hardLayerMat, hardLayerMat);
-    cv::resize(hardLayerMat, hardLayerMat, cv::Size(28, 28));
+    cv::resize(hardLayerMat, hardLayerMat, cv::Size(32, 32));
     hardLayerMat.convertTo(hardLayerMat, CV_32F);
     cv::Mat flat_hardLayerMat = hardLayerMat.reshape(0, 1);
 
@@ -181,16 +180,42 @@ DrawArea::pDrawPoint(QPoint aPoint) {
 
 void
 DrawArea::loadComparisonImages() {
-    // Reference@: https://forum.qt.io/topic/64817/how-to-read-all-files-from-a-selected-directory-and-use-them-one-by-one/3
-//    QString target_directory = "C:\\Users\\seanp\\source\\JpDrawApplication\\images";
-    QString target_directory = "../images/digits/";
-    QDir imageDir(target_directory);
-    QStringList images = imageDir.entryList(QStringList() << "*.png" << "*.PNG", QDir::Files);
+//    // Reference@: https://forum.qt.io/topic/64817/how-to-read-all-files-from-a-selected-directory-and-use-them-one-by-one/3
+////    QString target_directory = "C:\\Users\\seanp\\source\\JpDrawApplication\\images";
+//    QString target_directory = "../images/digits/";
+//    QDir imageDir(target_directory);
+//    QStringList images = imageDir.entryList(QStringList() << "*.png" << "*.PNG", QDir::Files);
+//
+//    QRegularExpression reg("(?<number>\\d).png");
+//    for (auto png : images) {
+//        auto match = reg.match(png);
+//        qInfo() << match.captured("number");
+//        mComparisonImagesDict.insert(match.captured("number").toInt(), QImage(imageDir.filePath(png)));
+//    }
 
-    QRegularExpression reg("(?<number>\\d).png");
-    for (auto png : images) {
-        auto match = reg.match(png);
-        qInfo() << match.captured("number");
-        mComparisonImagesDict.insert(match.captured("number").toInt(), QImage(imageDir.filePath(png)));
+    QFile knnDictFile = QFile(mKnnDictFilepath.c_str());
+    if(!knnDictFile.open(QIODevice::ReadOnly | QIODevice::Text))
+        return;
+
+    QDir resourceDir = QDir(QString(resourcePath.c_str()));
+    QStringList images = resourceDir.entryList(QStringList() << "*.png" << "*.PNG", QDir::Files);
+
+    QTextStream in(&knnDictFile);
+    QRegularExpression reg_txt("(?<character>\\w+),(?<number>\\d+)");
+    QRegularExpression reg_png("(?<character>\\w+).png");
+
+    while(!in.atEnd()) {
+        QString line = in.readLine();
+        auto match_txt = reg_txt.match(line);
+        for(auto png : images) {
+            auto match_png = reg_png.match(png);
+            if (match_png.captured("character") == match_txt.captured("character")) {
+                qInfo() << match_png.captured("character") << match_txt.captured("number").toInt();
+                mComparisonImagesDict.insert(match_txt.captured("number").toInt(),
+                                             QImage(resourceDir.filePath(png)));
+                images.removeOne(png);
+                break;
+            }
+        }
     }
 }

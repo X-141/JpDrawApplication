@@ -107,7 +107,12 @@ private:
     // QVector<QImage> mComparisonImages;
     QMap<int, QImage> mComparisonImagesDict;
 
+    // kNN model used to predict what the user has drawn
     cv::Ptr<cv::ml::KNearest> mKnn;
+
+    // text file path to load in numerical keys to images
+    // based on the knn model.
+    std::string mKnnDictFilepath;
 };
 
 #endif // DRAWAREA_H
