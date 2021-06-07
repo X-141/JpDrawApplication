@@ -27,14 +27,15 @@ MainWindow::MainWindow(QWidget *parent)
     mDrawArea->setObjectName("DrawArea");
     mDrawArea->setEnabled(true);
     mDrawArea->setCursor(QCursor(Qt::CrossCursor));
-    mDrawArea->resizeDrawArea(QSize(400, 400));
+    mDrawArea->resizeDrawArea(QSize(384, 384));
+    mDrawArea->setPenWidth(25);
     mUi->gridLayout->addWidget(mDrawArea, 0,0,1,1);
 
     mPredictionArea = new QLabel(mUi->centralwidget);
     mPredictionArea->setObjectName("PredictionArea");
     mPredictionArea->setEnabled(true);
     mPredictionArea->setCursor(QCursor(Qt::BlankCursor));
-    mPredictionArea->resize(QSize(400, 400));
+    mPredictionArea->resize(QSize(384, 384));
     mUi->gridLayout->addWidget(mPredictionArea, 0, 1, 1, 1);
 
     mCompareButton = new QPushButton(mUi->centralwidget);
@@ -43,19 +44,19 @@ MainWindow::MainWindow(QWidget *parent)
     mCompareButton->setEnabled(true);
     mUi->gridLayout->addWidget(mCompareButton, 4, 0, 1, 1);
 
-    mPenWidthSlider = new QSlider(Qt::Horizontal, mUi->centralwidget);
-    mPenWidthSlider->setObjectName("PenWidthSlider");
-    mPenWidthSlider->setEnabled(true);
-    //mPenWidthSlider->setTickPosition(QSlider::TicksBelow);
-    mPenWidthSlider->setMinimum(1);
-    mPenWidthSlider->setMaximum(100);
-    mUi->gridLayout->addWidget(mPenWidthSlider, 5, 0, 1, 1);
+//    mPenWidthSlider = new QSlider(Qt::Horizontal, mUi->centralwidget);
+//    mPenWidthSlider->setObjectName("PenWidthSlider");
+//    mPenWidthSlider->setEnabled(true);
+//    //mPenWidthSlider->setTickPosition(QSlider::TicksBelow);
+//    mPenWidthSlider->setMinimum(1);
+//    mPenWidthSlider->setMaximum(100);
+//    mUi->gridLayout->addWidget(mPenWidthSlider, 5, 0, 1, 1);
 
     QObject::connect(mCompareButton, SIGNAL(clicked(bool)),
                      this, SLOT(compareLayer(bool)));
 
-    QObject::connect(mPenWidthSlider, SIGNAL(valueChanged(int)),
-                     this, SLOT(changePenWidth(int)));
+//    QObject::connect(mPenWidthSlider, SIGNAL(valueChanged(int)),
+//                     this, SLOT(changePenWidth(int)));
 
     this->adjustSize();
     this->setWindowFlags(Qt::MSWindowsFixedSizeDialogHint);

@@ -113,11 +113,12 @@ DrawArea::setPenWidth(int width) {
 int
 DrawArea::compareLayer() {
     // we will get the entire draw area.
-    cv::Mat hardLayerMat = qImageToCvMat(generateImage().copy(0,0, 400, 400));
+    cv::Mat hardLayerMat = qImageToCvMat(generateImage().copy(0,0, 384, 384));
     // for our image we do need to invert the colors from white-bg black-fg to white-fg black-bg
     cv::imwrite("PRE_TEST.png", hardLayerMat);
     cv::bitwise_not(hardLayerMat, hardLayerMat);
     cv::resize(hardLayerMat, hardLayerMat, cv::Size(32, 32));
+    cv::threshold(hardLayerMat, hardLayerMat, 15, 255, cv::THRESH_BINARY);
     hardLayerMat.convertTo(hardLayerMat, CV_32F);
     cv::Mat flat_hardLayerMat = hardLayerMat.reshape(0, 1);
 
@@ -130,13 +131,13 @@ DrawArea::compareLayer() {
     output.convertTo(output, CV_32F);
     qInfo() << flat_hardLayerMat.rows << " " << flat_hardLayerMat.cols;
     qInfo() << input.rows << " " << input.cols;
-    for(int k = 0; k < 64; k++) {
-        mKnn->findNearest(input, 64, output);
-        qInfo() << "Calculated Label: " << (    int)output.at<float>(0) << "w/ value " << k;
-    }
+    mKnn->findNearest(input, 4, output);
+    qInfo() << "Calculated Label: " << (    int)output.at<float>(0) << "w/ value " << 4;
+//    for(int k = 1; k < 5; k++) {
+//        mKnn->findNearest(input, k, output);
+//        qInfo() << "Calculated Label: " << (    int)output.at<float>(0) << "w/ value " << k;
+//    }
 
-    // We will return 1 for now. Since we are modifying the code
-    // to use knn instead of the primitive method above.
     return (int)output.at<float>(0);
 }
 
