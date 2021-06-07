@@ -40,7 +40,7 @@ in this project.
 These instructions will assume a Linux environment (This project was made on ubuntu based distro). Windows build is possible, however, it requires more in-depth
 instructions that may be added later.
 
-1. git clone JpDrawApplication https://github.com/X-141/JpDrawApplication.git
+1. git clone https://github.com/X-141/JpDrawApplication.git
 2. cd JpDrawApplication
 3. mkdir Build ; cd Build
 4. cmake ..
