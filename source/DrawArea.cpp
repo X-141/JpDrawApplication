@@ -133,10 +133,6 @@ DrawArea::compareLayer() {
     qInfo() << input.rows << " " << input.cols;
     mKnn->findNearest(input, 4, output);
     qInfo() << "Calculated Label: " << (    int)output.at<float>(0) << "w/ value " << 4;
-//    for(int k = 1; k < 5; k++) {
-//        mKnn->findNearest(input, k, output);
-//        qInfo() << "Calculated Label: " << (    int)output.at<float>(0) << "w/ value " << k;
-//    }
 
     return (int)output.at<float>(0);
 }
@@ -181,19 +177,6 @@ DrawArea::pDrawPoint(QPoint aPoint) {
 
 void
 DrawArea::loadComparisonImages() {
-//    // Reference@: https://forum.qt.io/topic/64817/how-to-read-all-files-from-a-selected-directory-and-use-them-one-by-one/3
-////    QString target_directory = "C:\\Users\\seanp\\source\\JpDrawApplication\\images";
-//    QString target_directory = "../images/digits/";
-//    QDir imageDir(target_directory);
-//    QStringList images = imageDir.entryList(QStringList() << "*.png" << "*.PNG", QDir::Files);
-//
-//    QRegularExpression reg("(?<number>\\d).png");
-//    for (auto png : images) {
-//        auto match = reg.match(png);
-//        qInfo() << match.captured("number");
-//        mComparisonImagesDict.insert(match.captured("number").toInt(), QImage(imageDir.filePath(png)));
-//    }
-
     QFile knnDictFile = QFile(mKnnDictFilepath.c_str());
     if(!knnDictFile.open(QIODevice::ReadOnly | QIODevice::Text))
         return;
