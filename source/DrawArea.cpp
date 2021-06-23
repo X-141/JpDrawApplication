@@ -257,9 +257,6 @@ DrawArea::pObtainROI(cv::Mat aMat) {
 std::vector<cv::Mat>
 DrawArea::pTranslocateROI(const cv::Mat& aROI, int aHeight, int aWidth) {
 
-    // First generate the blank base image
-//    cv::Mat base_image = cv::Mat(aHeight, aWidth, aROI.type(), cv::Scalar(0,0,0));
-
     uint16_t half_height = aHeight / 2;
     uint16_t half_width = aWidth / 2;
 
@@ -268,20 +265,48 @@ DrawArea::pTranslocateROI(const cv::Mat& aROI, int aHeight, int aWidth) {
     uint16_t roi_half_height = roi_height / 2;
     uint16_t roi_half_width = roi_width / 2;
 
-    uint16_t wriggle = std::floor(half_height - roi_half_height);
-    uint16_t margin = std::floor(std::sqrt(aHeight) + std::sqrt(wriggle));
+    uint16_t wriggle_height = std::floor(half_height - roi_half_height);
+    uint16_t wriggle_width = std::floor(half_width - roi_half_width);
+    // Margin value can be adjusted to reflect what "feels" like a good bounding box!
+    uint16_t margin = std::floor(std::sqrt(aHeight) + std::sqrt(wriggle_height));
 
     uint16_t position_height = std::floor(half_height-roi_half_height);
     uint16_t position_width = std::floor(half_width-roi_half_width);
 
     constexpr uint16_t spots = 5;
+
+    // We need to be sure when we are translocating the image
+    // to the right or bottom that we are staying within bounds.
+    // [spots][0] = height and [spots][1] = width
     int locations[spots][2] = {
             {position_height, position_width}, // Center
-            {position_height - wriggle + margin, position_width}, // Top
-            {position_height + wriggle - margin, position_width}, // Bottom
-            {position_height, position_width - wriggle + margin}, // Left
-            {position_height, position_width + wriggle - margin} // Right
+            {position_height - wriggle_height + margin, position_width}, // Top
+            // {position_height + wriggle_height - margin, position_width}, // Bottom
+            {position_height, position_width - wriggle_width + margin}, // Left
+            // {position_height, position_width + wriggle_height - margin} // Right
     };
+
+    uint16_t possible_position = position_height + wriggle_height - margin;
+    // Check if translocating to the bottom exceeds height bound
+    if (possible_position + roi_height >= aHeight) {
+        // if so, go ahead and translocate as far down as possible
+        // minus the margin to leave some space.
+        locations[3][0] = aHeight - roi_height - margin;
+        locations[3][1] = position_width;
+    } else {
+        locations[3][0] = possible_position;
+        locations[3][1] = position_width;
+    }
+
+    possible_position = position_width + wriggle_width - margin;
+    // Check if translocating to the right exceeds width bound.
+    if (possible_position + roi_width >= aWidth) {
+        locations[4][0] = position_height;
+        locations[4][1] = aWidth - roi_width - margin;
+    } else {
+        locations[4][0] = position_height;
+        locations[4][1] = possible_position;
+    }
 
     std::vector<cv::Mat> translocatedImages;
     translocatedImages.resize(spots);
@@ -289,7 +314,7 @@ DrawArea::pTranslocateROI(const cv::Mat& aROI, int aHeight, int aWidth) {
     for(uint8_t index = 0; index < spots; ++index) {
         // Create Black image at the index
         auto& img = translocatedImages.at(index);
-        cv::Rect target_spot = cv::Rect(locations[index][0], locations[index][1],
+        cv::Rect target_spot = cv::Rect(locations[index][1], locations[index][0],
                                         roi_width, roi_height);
         img = cv::Mat(aHeight, aWidth, aROI.type(), cv::Scalar(0,0,0));
 
@@ -297,15 +322,16 @@ DrawArea::pTranslocateROI(const cv::Mat& aROI, int aHeight, int aWidth) {
             aROI.copyTo(img(target_spot));
         } catch (cv::Exception& exp) {
             qInfo() << exp.what();
+            qInfo() << "At index: " << index;
             qInfo() << "Exception when attempting to paste ROI onto base image";
-            qInfo() << "ROI Dimensions: " << roi_width << " " << roi_height;
-            qInfo() << "Base Image Dimensions: " << aWidth << " " << aHeight;
-            qInfo() << "Target Location: " << locations[index][0] << " " << locations[index][1];
+            qInfo() << "Base Position (height, width): " << position_height << " " << position_width;
+            qInfo() << "(Wriggle, Margin): " << wriggle_height << " " << margin;
+            qInfo() << "ROI Dimensions (height, width): " << roi_height << " " << roi_width;
+            qInfo() << "Base Image Dimensions (height, width): " << aHeight << " " << aWidth;
+            qInfo() << "Target Location (height, width): " << locations[index][0] << " " << locations[index][1];
             exit(-1);
         }
-
-
-        cv::imwrite("TEST_IMG_" + std::to_string(index) + ".png", img);
+//        cv::imwrite("TEST_IMG_" + std::to_string(index) + ".png", img);
     }
 
     return translocatedImages;
