@@ -34,12 +34,12 @@ public slots:
     */
     void compareLayer(bool);
 
-    /**
-    * @brief changePenWidth
-    * This slot will change the width of the
-    * pen for the DrawArea.
-    */
-    void changePenWidth(int);
+//    /**
+//    * @brief changePenWidth
+//    * This slot will change the width of the
+//    * pen for the DrawArea.
+//    */
+//    void changePenWidth(int);
 
     /**
     * @brief keyPressEvent
@@ -54,7 +54,7 @@ private:
     DrawArea* mDrawArea;
     QLabel* mPredictionArea;
     QPushButton* mCompareButton;
-    QSlider* mPenWidthSlider;
+//    QSlider* mPenWidthSlider;
 
     bool mCtrlKey_modifier;
 };

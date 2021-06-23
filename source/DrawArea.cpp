@@ -33,7 +33,7 @@ DrawArea::DrawArea(QWidget* parent)
 
     mVirtualLayerVector.reserve(32);
 
-    loadComparisonImages();
+    pLoadComparisonImages();
 }
 
 void
@@ -117,8 +117,17 @@ DrawArea::compareLayer() {
     // for our image we do need to invert the colors from white-bg black-fg to white-fg black-bg
     cv::imwrite("PRE_TEST.png", hardLayerMat);
     cv::bitwise_not(hardLayerMat, hardLayerMat);
+
+    cv::Rect roi = pObtainROI(hardLayerMat);
+
+//    cv::Mat roi_img = hardLayerMat(roi).clone();
+//    cv::imwrite("ROI.png", roi_img);
+
+
+
     cv::resize(hardLayerMat, hardLayerMat, cv::Size(32, 32));
     cv::threshold(hardLayerMat, hardLayerMat, 15, 255, cv::THRESH_BINARY);
+
     hardLayerMat.convertTo(hardLayerMat, CV_32F);
     cv::Mat flat_hardLayerMat = hardLayerMat.reshape(0, 1);
 
@@ -176,7 +185,7 @@ DrawArea::pDrawPoint(QPoint aPoint) {
 }
 
 void
-DrawArea::loadComparisonImages() {
+DrawArea::pLoadComparisonImages() {
     QFile knnDictFile = QFile(mKnnDictFilepath.c_str());
     if(!knnDictFile.open(QIODevice::ReadOnly | QIODevice::Text))
         return;
@@ -202,4 +211,30 @@ DrawArea::loadComparisonImages() {
             }
         }
     }
+}
+
+cv::Rect
+DrawArea::pObtainROI(cv::Mat aMat) {
+    int max_x = -1, max_y = -1;
+    int min_x = INT32_MAX, min_y = INT32_MAX;
+
+    for(int x = 0; x < aMat.rows; ++x) { // width
+        for(int y = 0; y < aMat.cols; ++y) { // cols
+            if(aMat.at<uchar>(x, y) == 255) {
+                if (max_x < x)
+                    max_x = x;
+                if (max_y < y)
+                    max_y = y;
+                if (min_x > x)
+                    min_x = x;
+                if (min_y > y)
+                    min_y = y;
+            }
+        }
+    }
+
+//    qInfo() << "Dimensions (x_min, y_min): " << min_x << " " << min_y;
+//    qInfo() << "Dimensions (x_max, y_max): " << max_x << " " << max_y;
+
+    return cv::Rect(min_y, min_x,max_y-min_y,max_x-min_x);
 }

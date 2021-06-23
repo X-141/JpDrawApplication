@@ -79,7 +79,19 @@ private:
     * Load from memory a series of characters
     * to compare with the users drawings.
     */
-    void loadComparisonImages();
+    void pLoadComparisonImages();
+
+    /*
+     * @brief pObtainROI
+     * Given a drawn image, find the region
+     * of interest that contains the character
+     */
+    static cv::Rect pObtainROI(cv::Mat aMat);
+
+    /*
+     * @brief pTranslocateROI
+     *
+     */
 
 private:
     // Set to true on mouse down. Set to false on mouse up
@@ -87,7 +99,7 @@ private:
     // Hard layer is what is shown to the user. Contains
     // draw virtual layers that are enabled.
     DrawLayer mHardLayer;
-    // Virtual layer is the induvidual layers that are drawn.
+    // Virtual layer is the individual layers that are drawn.
     DrawLayer mVirtualLayer;
     // Used to calculate a line of best fit as the mouse positions
     // are polled.
