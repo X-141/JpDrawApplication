@@ -119,10 +119,9 @@ DrawArea::compareLayer() {
     cv::bitwise_not(hardLayerMat, hardLayerMat);
 
     cv::Rect roi = pObtainROI(hardLayerMat);
-
+    pTranslocateROI(hardLayerMat(roi).clone(), hardLayerMat.cols, hardLayerMat.rows);
 //    cv::Mat roi_img = hardLayerMat(roi).clone();
 //    cv::imwrite("ROI.png", roi_img);
-
 
 
     cv::resize(hardLayerMat, hardLayerMat, cv::Size(32, 32));
@@ -237,4 +236,50 @@ DrawArea::pObtainROI(cv::Mat aMat) {
 //    qInfo() << "Dimensions (x_max, y_max): " << max_x << " " << max_y;
 
     return cv::Rect(min_y, min_x,max_y-min_y,max_x-min_x);
+}
+
+std::vector<cv::Mat>
+DrawArea::pTranslocateROI(const cv::Mat& aROI, int aHeight, int aWidth) {
+
+    // First generate the blank base image
+//    cv::Mat base_image = cv::Mat(aHeight, aWidth, aROI.type(), cv::Scalar(0,0,0));
+
+    uint16_t half_height = aHeight / 2;
+    uint16_t half_width = aWidth / 2;
+
+    uint16_t roi_height = aROI.rows;
+    uint16_t roi_width = aROI.cols;
+    uint16_t roi_half_height = roi_height / 2;
+    uint16_t roi_half_width = roi_width / 2;
+
+    uint16_t wriggle = std::floor(half_height - roi_half_height);
+    uint16_t margin = std::floor(std::sqrt(aHeight) + std::sqrt(wriggle));
+
+    uint16_t position_height = std::floor(half_height-roi_half_height);
+    uint16_t position_width = std::floor(half_width-roi_half_width);
+
+    constexpr uint16_t spots = 5;
+    int locations[spots][2] = {
+            {position_height, position_width}, // Center
+            {position_height - wriggle + margin, position_width}, // Top
+            {position_height + wriggle - margin, position_width}, // Bottom
+            {position_height, position_width - wriggle + margin}, // Left
+            {position_height, position_width + wriggle - margin} // Right
+    };
+
+    std::vector<cv::Mat> translocatedImages;
+    translocatedImages.resize(spots);
+
+    for(uint8_t index = 0; index < spots; ++index) {
+        // Create Black image at the index
+        auto& img = translocatedImages.at(index);
+        cv::Rect target_spot = cv::Rect(locations[index][0], locations[index][1],
+                                        roi_width, roi_height);
+        img = cv::Mat(aHeight, aWidth, aROI.type(), cv::Scalar(0,0,0));
+        aROI.copyTo(img(target_spot));
+
+        cv::imwrite("TEST_IMG_" + std::to_string(index) + ".png", img);
+    }
+
+    return translocatedImages;
 }
