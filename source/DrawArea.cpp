@@ -115,34 +115,50 @@ DrawArea::compareLayer() {
     // we will get the entire draw area.
     cv::Mat hardLayerMat = qImageToCvMat(generateImage().copy(0,0, 384, 384));
     // for our image we do need to invert the colors from white-bg black-fg to white-fg black-bg
-    cv::imwrite("PRE_TEST.png", hardLayerMat);
+//    cv::imwrite("PRE_TEST.png", hardLayerMat);
     cv::bitwise_not(hardLayerMat, hardLayerMat);
 
     cv::Rect roi = pObtainROI(hardLayerMat);
-    pTranslocateROI(hardLayerMat(roi).clone(), hardLayerMat.cols, hardLayerMat.rows);
-//    cv::Mat roi_img = hardLayerMat(roi).clone();
-//    cv::imwrite("ROI.png", roi_img);
+    std::vector<cv::Mat> translocatedImages = pTranslocateROI(hardLayerMat(roi).clone(), hardLayerMat.cols, hardLayerMat.rows);
 
+    int image_number = 0;
+    for(auto& image : translocatedImages) {
+        cv::imwrite("PRE_IMAGE_" + std::to_string(image_number) + ".png", image);
+        cv::resize(image, image, cv::Size(32,32));
+        cv::threshold(image, image, 15, 255, cv::THRESH_BINARY);
+        image.convertTo(image, CV_32F);
+        cv::imwrite("POST_IMAGE_" + std::to_string(image_number++) + ".png", image);
+        cv::Mat flat_image = image.reshape(0,1);
 
-    cv::resize(hardLayerMat, hardLayerMat, cv::Size(32, 32));
-    cv::threshold(hardLayerMat, hardLayerMat, 15, 255, cv::THRESH_BINARY);
+        cv::Mat input, output;
+        input.push_back(flat_image);
+        input.convertTo(input, CV_32F);
+        output.convertTo(output, CV_32F);
 
-    hardLayerMat.convertTo(hardLayerMat, CV_32F);
-    cv::Mat flat_hardLayerMat = hardLayerMat.reshape(0, 1);
+        mKnn->findNearest(input, 4, output);
+        qInfo() << "Calculated Label: " << (int)output.at<float>(0);
+    }
 
-    cv::imwrite("POST_TEST.png", hardLayerMat);
-
-    cv::Mat input, output;
-    input.push_back(flat_hardLayerMat);
-
-    input.convertTo(input, CV_32F);
-    output.convertTo(output, CV_32F);
-    qInfo() << flat_hardLayerMat.rows << " " << flat_hardLayerMat.cols;
-    qInfo() << input.rows << " " << input.cols;
-    mKnn->findNearest(input, 4, output);
-    qInfo() << "Calculated Label: " << (    int)output.at<float>(0) << "w/ value " << 4;
-
-    return (int)output.at<float>(0);
+    return 0;
+//    cv::resize(hardLayerMat, hardLayerMat, cv::Size(32, 32));
+//    cv::threshold(hardLayerMat, hardLayerMat, 15, 255, cv::THRESH_BINARY);
+//
+//    hardLayerMat.convertTo(hardLayerMat, CV_32F);
+//    cv::Mat flat_hardLayerMat = hardLayerMat.reshape(0, 1);
+//
+//    cv::imwrite("POST_TEST.png", hardLayerMat);
+//
+//    cv::Mat input, output;
+//    input.push_back(flat_hardLayerMat);
+//
+//    input.convertTo(input, CV_32F);
+//    output.convertTo(output, CV_32F);
+//    qInfo() << flat_hardLayerMat.rows << " " << flat_hardLayerMat.cols;
+//    qInfo() << input.rows << " " << input.cols;
+//    mKnn->findNearest(input, 4, output);
+//    qInfo() << "Calculated Label: " << (    int)output.at<float>(0) << "w/ value " << 4;
+//
+//    return (int)output.at<float>(0);
 }
 
 QImage 
@@ -276,7 +292,18 @@ DrawArea::pTranslocateROI(const cv::Mat& aROI, int aHeight, int aWidth) {
         cv::Rect target_spot = cv::Rect(locations[index][0], locations[index][1],
                                         roi_width, roi_height);
         img = cv::Mat(aHeight, aWidth, aROI.type(), cv::Scalar(0,0,0));
-        aROI.copyTo(img(target_spot));
+
+        try {
+            aROI.copyTo(img(target_spot));
+        } catch (cv::Exception& exp) {
+            qInfo() << exp.what();
+            qInfo() << "Exception when attempting to paste ROI onto base image";
+            qInfo() << "ROI Dimensions: " << roi_width << " " << roi_height;
+            qInfo() << "Base Image Dimensions: " << aWidth << " " << aHeight;
+            qInfo() << "Target Location: " << locations[index][0] << " " << locations[index][1];
+            exit(-1);
+        }
+
 
         cv::imwrite("TEST_IMG_" + std::to_string(index) + ".png", img);
     }
