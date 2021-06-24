@@ -137,7 +137,7 @@ DrawArea::compareLayer() {
         input.convertTo(input, CV_32F);
         output.convertTo(output, CV_32F);
 
-        mKnn->findNearest(input, 8, output);
+        mKnn->findNearest(input, 4, output);
         calculated_label = (int)output.at<float>(0);
         qInfo() << "Calculated Label: " << calculated_label;
 
@@ -160,26 +160,7 @@ DrawArea::compareLayer() {
 
     qInfo() << "Best label: " << best_label << " With value: " << best_value;
 
-    return 0;
-//    cv::resize(hardLayerMat, hardLayerMat, cv::Size(32, 32));
-//    cv::threshold(hardLayerMat, hardLayerMat, 15, 255, cv::THRESH_BINARY);
-//
-//    hardLayerMat.convertTo(hardLayerMat, CV_32F);
-//    cv::Mat flat_hardLayerMat = hardLayerMat.reshape(0, 1);
-//
-//    cv::imwrite("POST_TEST.png", hardLayerMat);
-//
-//    cv::Mat input, output;
-//    input.push_back(flat_hardLayerMat);
-//
-//    input.convertTo(input, CV_32F);
-//    output.convertTo(output, CV_32F);
-//    qInfo() << flat_hardLayerMat.rows << " " << flat_hardLayerMat.cols;
-//    qInfo() << input.rows << " " << input.cols;
-//    mKnn->findNearest(input, 4, output);
-//    qInfo() << "Calculated Label: " << (    int)output.at<float>(0) << "w/ value " << 4;
-//
-//    return (int)output.at<float>(0);
+    return best_label;
 }
 
 QImage 
