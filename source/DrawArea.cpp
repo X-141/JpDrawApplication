@@ -115,13 +115,15 @@ DrawArea::compareLayer() {
     // we will get the entire draw area.
     cv::Mat hardLayerMat = qImageToCvMat(generateImage().copy(0,0, 384, 384));
     // for our image we do need to invert the colors from white-bg black-fg to white-fg black-bg
-//    cv::imwrite("PRE_TEST.png", hardLayerMat);
     cv::bitwise_not(hardLayerMat, hardLayerMat);
 
     cv::Rect roi = pObtainROI(hardLayerMat);
     std::vector<cv::Mat> translocatedImages = pTranslocateROI(hardLayerMat(roi).clone(), hardLayerMat.cols, hardLayerMat.rows);
 
+    QMap<int, int> tally;
+
     int image_number = 0;
+    int calculated_label = -1;
     for(auto& image : translocatedImages) {
         cv::imwrite("PRE_IMAGE_" + std::to_string(image_number) + ".png", image);
         cv::resize(image, image, cv::Size(32,32));
@@ -135,9 +137,28 @@ DrawArea::compareLayer() {
         input.convertTo(input, CV_32F);
         output.convertTo(output, CV_32F);
 
-        mKnn->findNearest(input, 4, output);
-        qInfo() << "Calculated Label: " << (int)output.at<float>(0);
+        mKnn->findNearest(input, 8, output);
+        calculated_label = (int)output.at<float>(0);
+        qInfo() << "Calculated Label: " << calculated_label;
+
+        auto label = tally.find(calculated_label);
+
+        if(label == tally.end())
+            label = tally.insert(calculated_label, 0);
+
+        label.value() = label.value() + 1;
     }
+
+    int best_value = -1;
+    int best_label = -1;
+    for(auto begin = tally.begin(); begin != tally.end(); begin++) {
+        if(begin.value() > best_value) {
+            best_value = begin.value();
+            best_label = begin.key();
+        }
+    }
+
+    qInfo() << "Best label: " << best_label << " With value: " << best_value;
 
     return 0;
 //    cv::resize(hardLayerMat, hardLayerMat, cv::Size(32, 32));
@@ -301,6 +322,8 @@ DrawArea::pTranslocateROI(const cv::Mat& aROI, int aHeight, int aWidth) {
     possible_position = position_width + wriggle_width - margin;
     // Check if translocating to the right exceeds width bound.
     if (possible_position + roi_width >= aWidth) {
+        // If so, go ahead and translocate as far right as possible
+        // minus the margin to leave some space.
         locations[4][0] = position_height;
         locations[4][1] = aWidth - roi_width - margin;
     } else {
