@@ -93,7 +93,7 @@ private:
      * Given a ROI, it will draw the ROI
      * on a base_image of aHeight and aWidth.
      */
-    static std::vector<cv::Mat> pTranslocateROI(const cv::Mat& aROI, int aHeight, int aWidth);
+    static cv::Mat pTranslocateROI(const cv::Mat& aROI, int aHeight, int aWidth);
 
 private:
     // Set to true on mouse down. Set to false on mouse up
