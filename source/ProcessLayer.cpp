@@ -12,9 +12,6 @@ ProcessLayer::ProcessLayer(QImage& image)
 	: mPngMatrix(qImageToCvMat(image))
 {
 	LOG("Creating processing layer.\n");
-	//LOG("Writing out imagePath to png file: ");
-	//LOG("C:\\Users\\seanp\\source\\JpDrawApplication\\build\\testFILE.png\n");
-	//cv::imwrite("C:\\Users\\seanp\\source\\JpDrawApplication\\build\\testFILE.png", mPngMatrix);
 }
 
 ProcessLayer::ProcessLayer(const QString& imagePath) 
@@ -22,10 +19,6 @@ ProcessLayer::ProcessLayer(const QString& imagePath)
 	LOG("Creating CV Matrix from filesystem.\n");
 	QImage image(imagePath, "PNG");
 	mPngMatrix = qImageToCvMat(image);
-	// Lets try writing out the matrix file.
-	// LOG("Writing out imagePath to png file: ");
-	// LOG("C:\\Users\\seanp\\source\\JpDrawApplication\\build\\testFILE.png\n");
-	// cv::imwrite("C:\\Users\\seanp\\source\\JpDrawApplication\\build\\testFILE.png", mPngMatrix);
 }
 
 
