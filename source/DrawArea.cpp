@@ -245,11 +245,6 @@ DrawArea::pTranslocateROI(const cv::Mat& aROI, int aHeight, int aWidth) {
     uint16_t roi_half_height = roi_height / 2;
     uint16_t roi_half_width = roi_width / 2;
 
-    uint16_t wriggle_height = std::floor(half_height - roi_half_height);
-    uint16_t wriggle_width = std::floor(half_width - roi_half_width);
-    // Margin value can be adjusted to reflect what "feels" like a good bounding box!
-    uint16_t margin = std::floor(std::sqrt(aHeight) + std::sqrt(wriggle_height));
-
     uint16_t position_height = std::floor(half_height-roi_half_height);
     uint16_t position_width = std::floor(half_width-roi_half_width);
 
