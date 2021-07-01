@@ -11,7 +11,7 @@
 #include <QListWidget>
 #include <QPushButton>
 #include <QDebug>
-#include <QSlider>
+//#include <QSlider>
 #include <QLabel>
 
 #include "Log.hpp"
@@ -19,7 +19,10 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , mUi(new Ui::MainWindow),
-    mDrawArea(nullptr)
+    mDrawArea(nullptr),
+    mPredictionArea(nullptr),
+    mCompareButton(nullptr),
+    mCtrlKey_modifier(false)
 {
     mUi->setupUi(this);
 
@@ -28,7 +31,7 @@ MainWindow::MainWindow(QWidget *parent)
     mDrawArea->setEnabled(true);
     mDrawArea->setCursor(QCursor(Qt::CrossCursor));
     mDrawArea->resizeDrawArea(QSize(384, 384));
-    mDrawArea->setPenWidth(25);
+    mDrawArea->setPenWidth(20);
     mUi->gridLayout->addWidget(mDrawArea, 0,0,1,1);
 
     mPredictionArea = new QLabel(mUi->centralwidget);
@@ -67,7 +70,7 @@ MainWindow::~MainWindow()
     delete mUi;
     delete mDrawArea;
     delete mCompareButton;
-    delete mPenWidthSlider;
+//    delete mPenWidthSlider;
 }
 
 void
@@ -78,11 +81,11 @@ MainWindow::compareLayer(bool checked) {
     mPredictionArea->setPixmap(QPixmap::fromImage(loadImage));
 }
 
-void
-MainWindow::changePenWidth(int value) {
-    mDrawArea->setPenWidth(value);
-    qInfo() << value;
-}
+//void
+//MainWindow::changePenWidth(int value) {
+//    mDrawArea->setPenWidth(value);
+//    qInfo() << value;
+//}
 
 void
 MainWindow::keyPressEvent(QKeyEvent* event) {
