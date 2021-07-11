@@ -81,19 +81,7 @@ private:
     */
     void pLoadComparisonImages();
 
-    /*
-     * @brief pObtainROI
-     * Given a drawn image, find the region
-     * of interest that contains the character
-     */
-    static cv::Rect pObtainROI(cv::Mat aMat);
 
-    /*
-     * @brief pTranslocateROI
-     * Given a ROI, it will draw the ROI
-     * on a base_image of aHeight and aWidth.
-     */
-    static cv::Mat pTranslocateROI(const cv::Mat& aROI, int aHeight, int aWidth);
 
 private:
     // Set to true on mouse down. Set to false on mouse up
@@ -128,5 +116,53 @@ private:
     // based on the knn model.
     std::string mKnnDictFilepath;
 };
+
+namespace ImageMethods {
+
+    /**
+    * @brief prepareMatrixForKNN
+    * Given aMat, resize, threshold, and
+    * convert it to the proper format to
+    * be used in the kNN model.
+    */
+    static cv::Mat prepareMatrixForKNN(cv::Mat aMat);
+
+    /**
+    * @brief obtainROI
+    * Given a drawn image, find the region
+    * of interest that contains the character
+    */
+    static cv::Rect obtainROI(cv::Mat aMat);
+
+    /*
+     * @brief translocateROI
+     * Given a ROI, it will draw the ROI
+     * on a base_image of aHeight and aWidth.
+     */
+    static cv::Mat translocateROI(const cv::Mat& aROI, int aHeight, int aWidth);
+
+    /**
+    * @brief rescaleROI
+    * Given a ROI, rescale to target scalar values
+    * and place ROI images into defined image aHeight and
+    * aWidth
+    */
+    static std::vector<cv::Mat> rescaleROI(const std::vector<float>& aTargetScalars,
+                                           const cv::Mat& aROI, int aHeight, int aWidth, bool debugFlag);
+
+    /**
+    * @brief findMostFrequentLabel
+    * Given a vector of labels, return the label
+    * that occurs most frequently.
+    */
+    static int findMostFrequentLabel(const std::vector<int>& aLabels, bool debugFlag);
+}
+
+namespace TechniqueMethods {
+    static int ROITranslocation(const cv::Ptr<cv::ml::KNearest>& aKNNModel, const cv::Mat& aBaseImage, bool debugFlag);
+
+    static int ROIRescaling(const cv::Ptr<cv::ml::KNearest>& aKNNModel, const cv::Mat& aBaseImage, bool debugFlag);
+}
+
 
 #endif // DRAWAREA_H

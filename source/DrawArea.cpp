@@ -116,34 +116,13 @@ DrawArea::compareLayer() {
     cv::Mat hardLayerMat = qImageToCvMat(generateImage().copy(0,0, 384, 384));
     // for our image we do need to invert the colors from white-bg black-fg to white-fg black-bg
     cv::bitwise_not(hardLayerMat, hardLayerMat);
-    cv::imwrite("RAW_IMAGE.png", hardLayerMat);
 
-    cv::Rect roi = pObtainROI(hardLayerMat);
-    cv::Mat translocatedImages = pTranslocateROI(hardLayerMat(roi).clone(), hardLayerMat.cols, hardLayerMat.rows);
-
-    cv::imwrite("PRE_IMAGE.png", translocatedImages);
-    cv::resize(translocatedImages, translocatedImages, cv::Size(32,32));
-    cv::threshold(translocatedImages, translocatedImages, 15, 255, cv::THRESH_BINARY);
-    translocatedImages.convertTo(translocatedImages, CV_32F);
-    cv::imwrite("POST_IMAGE.png", translocatedImages);
-    cv::Mat flat_image = translocatedImages.reshape(0,1);
-
-    cv::Mat input, output;
-    input.push_back(flat_image);
-    input.convertTo(input, CV_32F);
-    output.convertTo(output, CV_32F);
-
-    mKnn->findNearest(input, 4, output);
-    int calculated_label = (int)output.at<float>(0);
-
-    qInfo() << "Calculated Label: " << calculated_label;
-
-    return calculated_label;
+    //return TechniqueMethods::ROITranslocation(mKnn, hardLayerMat, true);
+    return TechniqueMethods::ROIRescaling(mKnn, hardLayerMat, true);
 }
 
 QImage 
 DrawArea::getComparisonImage(int index) {
-//    return mComparisonImages.at(index);
     return mComparisonImagesDict[index];
 }
 
@@ -209,7 +188,7 @@ DrawArea::pLoadComparisonImages() {
 }
 
 cv::Rect
-DrawArea::pObtainROI(cv::Mat aMat) {
+ImageMethods::obtainROI(cv::Mat aMat) {
     int max_x = -1, max_y = -1;
     int min_x = INT32_MAX, min_y = INT32_MAX;
 
@@ -231,11 +210,19 @@ DrawArea::pObtainROI(cv::Mat aMat) {
 //    qInfo() << "Dimensions (x_min, y_min): " << min_x << " " << min_y;
 //    qInfo() << "Dimensions (x_max, y_max): " << max_x << " " << max_y;
 
-    return cv::Rect(min_y, min_x,max_y-min_y,max_x-min_x);
+    return cv::Rect(min_y, min_x, max_y-min_y, max_x-min_x);
 }
 
 cv::Mat
-DrawArea::pTranslocateROI(const cv::Mat& aROI, int aHeight, int aWidth) {
+ImageMethods::prepareMatrixForKNN(cv::Mat aMat) {
+    cv::resize(aMat, aMat, cv::Size(32,32));
+    cv::threshold(aMat, aMat, 15, 255, cv::THRESH_BINARY);
+    aMat.convertTo(aMat, CV_32F);
+    return aMat.reshape(0, 1);
+}
+
+cv::Mat
+ImageMethods::translocateROI(const cv::Mat& aROI, int aHeight, int aWidth) {
 
     uint16_t half_height = aHeight / 2;
     uint16_t half_width = aWidth / 2;
@@ -256,88 +243,122 @@ DrawArea::pTranslocateROI(const cv::Mat& aROI, int aHeight, int aWidth) {
     return base_image;
 }
 
-// Keep later/reference
-//std::vector<cv::Mat>
-//DrawArea::pTranslocateROI(const cv::Mat& aROI, int aHeight, int aWidth) {
-//
-//    uint16_t half_height = aHeight / 2;
-//    uint16_t half_width = aWidth / 2;
-//
-//    uint16_t roi_height = aROI.rows;
-//    uint16_t roi_width = aROI.cols;
-//    uint16_t roi_half_height = roi_height / 2;
-//    uint16_t roi_half_width = roi_width / 2;
-//
-//    uint16_t wriggle_height = std::floor(half_height - roi_half_height);
-//    uint16_t wriggle_width = std::floor(half_width - roi_half_width);
-//    // Margin value can be adjusted to reflect what "feels" like a good bounding box!
-//    uint16_t margin = std::floor(std::sqrt(aHeight) + std::sqrt(wriggle_height));
-//
-//    uint16_t position_height = std::floor(half_height-roi_half_height);
-//    uint16_t position_width = std::floor(half_width-roi_half_width);
-//
-//    constexpr uint16_t spots = 5;
-//
-//    // We need to be sure when we are translocating the image
-//    // to the right or bottom that we are staying within bounds.
-//    // [spots][0] = height and [spots][1] = width
-//    int locations[spots][2] = {
-//            {position_height, position_width}, // Center
-//            {position_height - wriggle_height + margin, position_width}, // Top
-//            // {position_height + wriggle_height - margin, position_width}, // Bottom
-//            {position_height, position_width - wriggle_width + margin}, // Left
-//            // {position_height, position_width + wriggle_height - margin} // Right
-//    };
-//
-//    uint16_t possible_position = position_height + wriggle_height - margin;
-//    // Check if translocating to the bottom exceeds height bound
-//    if (possible_position + roi_height >= aHeight) {
-//        // if so, go ahead and translocate as far down as possible
-//        // minus the margin to leave some space.
-//        locations[3][0] = aHeight - roi_height - margin;
-//        locations[3][1] = position_width;
-//    } else {
-//        locations[3][0] = possible_position;
-//        locations[3][1] = position_width;
-//    }
-//
-//    possible_position = position_width + wriggle_width - margin;
-//    // Check if translocating to the right exceeds width bound.
-//    if (possible_position + roi_width >= aWidth) {
-//        // If so, go ahead and translocate as far right as possible
-//        // minus the margin to leave some space.
-//        locations[4][0] = position_height;
-//        locations[4][1] = aWidth - roi_width - margin;
-//    } else {
-//        locations[4][0] = position_height;
-//        locations[4][1] = possible_position;
-//    }
-//
-//    std::vector<cv::Mat> translocatedImages;
-//    translocatedImages.resize(spots);
-//
-//    for(uint8_t index = 0; index < spots; ++index) {
-//        // Create Black image at the index
-//        auto& img = translocatedImages.at(index);
-//        cv::Rect target_spot = cv::Rect(locations[index][1], locations[index][0],
-//                                        roi_width, roi_height);
-//        img = cv::Mat(aHeight, aWidth, aROI.type(), cv::Scalar(0,0,0));
-//
-//        try {
-//            aROI.copyTo(img(target_spot));
-//        } catch (cv::Exception& exp) {
-//            qInfo() << exp.what();
-//            qInfo() << "At index: " << index;
-//            qInfo() << "Exception when attempting to paste ROI onto base image";
-//            qInfo() << "Base Position (height, width): " << position_height << " " << position_width;
-//            qInfo() << "(Wriggle, Margin): " << wriggle_height << " " << margin;
-//            qInfo() << "ROI Dimensions (height, width): " << roi_height << " " << roi_width;
-//            qInfo() << "Base Image Dimensions (height, width): " << aHeight << " " << aWidth;
-//            qInfo() << "Target Location (height, width): " << locations[index][0] << " " << locations[index][1];
-//            exit(-1);
-//        }
-////        cv::imwrite("TEST_IMG_" + std::to_string(index) + ".png", img);
-//    }
-//
-//    return translocatedImages;
-//}
+std::vector<cv::Mat>
+ImageMethods::rescaleROI(const std::vector<float>& aTargetScalars, const cv::Mat& aROI,
+        int aHeight, int aWidth, bool debugFlag)
+{
+    auto scaledROIMats = std::vector<cv::Mat>();
+
+    if(aTargetScalars.empty())
+        return scaledROIMats;
+
+    scaledROIMats.reserve(aTargetScalars.size());
+
+    for(const auto& scalar : aTargetScalars) {
+        auto roiCopy = aROI.clone();
+        if (scalar * roiCopy.rows >= aHeight || scalar * roiCopy.cols >= aWidth)
+            continue;
+
+        cv::resize(roiCopy, roiCopy, cv::Size(), scalar, scalar);
+        auto outputMat = ImageMethods::translocateROI(roiCopy, aHeight, aWidth);
+        if(debugFlag) cv::imwrite("scaled_image" + std::to_string(scalar) + ".png", outputMat);
+        scaledROIMats.emplace_back(std::move(outputMat));
+    }
+
+    return scaledROIMats;
+}
+
+int
+ImageMethods::findMostFrequentLabel(const std::vector<int>& aLabels, bool debugFlag) {
+    std::map<int, int> labelCounter;
+
+    for(const auto& label : aLabels) {
+        auto iter = labelCounter.find(label);
+        if(iter != labelCounter.end())
+            iter->second += 1;
+        else
+            labelCounter.insert({label, 1});
+    }
+
+    int mostFrequentLabel = 0;
+    int maxValue = -1;
+    for(const auto& labels : labelCounter) {
+        if(debugFlag) qInfo() << "Label: " << labels.first << " count: " << labels.second;
+        if(labels.second > maxValue) {
+            mostFrequentLabel = labels.first;
+            maxValue = labels.second;
+        }
+    }
+    if(debugFlag) qInfo() << "Most frequent label: " << mostFrequentLabel;
+    return mostFrequentLabel;
+}
+
+
+int
+TechniqueMethods::ROITranslocation(const cv::Ptr<cv::ml::KNearest>& aKNNModel, const cv::Mat& aBaseImage, bool debugFlag) {
+
+    if(debugFlag) cv::imwrite("RAW_IMAGE.png", aBaseImage);
+
+    cv::Rect roi = ImageMethods::obtainROI(aBaseImage);
+    cv::Mat translocatedImages = ImageMethods::translocateROI(aBaseImage(roi).clone(),
+        aBaseImage.cols, aBaseImage.rows);
+
+    if(debugFlag) cv::imwrite("PRE_IMAGE.png", translocatedImages);
+    cv::resize(translocatedImages, translocatedImages, cv::Size(32,32));
+    cv::threshold(translocatedImages, translocatedImages, 15, 255, cv::THRESH_BINARY);
+    translocatedImages.convertTo(translocatedImages, CV_32F);
+
+    if(debugFlag) cv::imwrite("POST_IMAGE.png", translocatedImages);
+
+    cv::Mat flat_image = translocatedImages.reshape(0,1);
+
+    cv::Mat input, output;
+    input.push_back(flat_image);
+    input.convertTo(input, CV_32F);
+    output.convertTo(output, CV_32F);
+
+    aKNNModel->findNearest(input, 4, output);
+    int calculated_label = (int)output.at<float>(0);
+
+    if(debugFlag) qInfo() << "Calculated Label: " << calculated_label;
+
+    return calculated_label;
+}
+
+int
+TechniqueMethods::ROIRescaling(const cv::Ptr<cv::ml::KNearest>& aKNNModel, const cv::Mat& aBaseImage, bool debugFlag) {
+    
+    if(debugFlag) cv::imwrite("RAW_IMAGE.png", aBaseImage);
+
+    cv::Rect roi = ImageMethods::obtainROI(aBaseImage);
+
+    // Current selected scalar values are not based on any empirical data.
+    // just what feels right.
+    auto rescaledMats = ImageMethods::rescaleROI({.70, .75, .80, .85, .90, .95, 1.0, 1.05, 1.10},
+                                                 aBaseImage(roi).clone(),
+                                                 aBaseImage.rows, aBaseImage.cols, debugFlag);
+
+    if(rescaledMats.empty()) {
+        qInfo() << "rescaleROI() returned a empty vector.";
+        return 0;
+    }
+
+    auto calculatedLabels = std::vector<int>();
+    calculatedLabels.reserve(rescaledMats.size());
+    for(auto& mats : rescaledMats) {
+        auto flatImage = ImageMethods::prepareMatrixForKNN(mats);
+        cv::Mat input, output;
+        input.push_back(flatImage);
+        input.convertTo(input, CV_32F);
+        output.convertTo(output, CV_32F);
+        try {
+            aKNNModel->findNearest(input, 4, output);
+        } catch(const cv::Exception& ex) {
+            ex.what();
+            return 0;
+        }
+        calculatedLabels.push_back((int)output.at<float>(0));
+    }
+
+    return ImageMethods::findMostFrequentLabel(calculatedLabels, debugFlag);
+}
