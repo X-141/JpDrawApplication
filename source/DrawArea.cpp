@@ -108,7 +108,7 @@ DrawArea::setPenWidth(int width) {
     if (width >= 1)
         mPenWidth = width;
     else
-        Logger::getInstance().logData(Logger::LevelFlags::warning,
+        Logger::getInstance().logData(level::warning,
                                       "DrawArea::setPenWidth()","Tried to set pen width < 1.");
 }
 
@@ -179,8 +179,8 @@ DrawArea::pLoadComparisonImages() {
         for(auto png : images) {
             auto match_png = reg_png.match(png);
             if (match_png.captured("character") == match_txt.captured("character")) {
-                Logger::getInstance().logData(Logger::LevelFlags::standard, "DrawArea::pLoadComparisonImages()",
-                                 QString(match_png.captured("character") + " " + match_txt.captured("number")));
+                Logger::getInstance().logData(level::standard, "DrawArea::pLoadComparisonImages()",
+                                              QString(match_png.captured("character") + " " + match_txt.captured("number")));
 
                 mComparisonImagesDict.insert(match_txt.captured("number").toInt(),
                                              QImage(resourceDir.filePath(png)));

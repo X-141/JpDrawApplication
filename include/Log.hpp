@@ -13,15 +13,15 @@
 */
 
 // https://stackoverflow.com/questions/1008019/c-singleton-design-pattern
+enum level {
+    standard = 1,
+    warning = 2,
+    error = 4,
+    info = 8
+};
+
 class Logger {
 public:
-
-    enum LevelFlags {
-        standard = 1,
-        warning = 2,
-        error = 4,
-        info = 8
-    };
 
     static Logger& getInstance()
     {
@@ -51,7 +51,7 @@ public:
 private:
     Logger() {
         open();
-        mLevel = LevelFlags::standard | LevelFlags::warning | LevelFlags::error;
+        mLevel = level::standard | level::warning | level::error;
     }
 
     ~Logger() {
