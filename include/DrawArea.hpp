@@ -6,8 +6,10 @@
 
 #include <QLabel>
 #include <QMap>
+#include <QPointer>
 
 #include "DrawLayer.hpp"
+#include "Log.hpp"
 
 class DrawArea : public QLabel {
     Q_OBJECT
@@ -45,7 +47,7 @@ public:
     * Takes the currently drawn hardlayer dimensions
     * and scales the set of comparison images to match.
     * The important part is that we will compute the comparison
-    * value betweent the hardlayer image and the comparison sets.
+    * value between the hardlayer image and the comparison sets.
     */
     int compareLayer();
 
@@ -120,6 +122,7 @@ private:
     // text file path to load in numerical keys to images
     // based on the knn model.
     std::string mKnnDictFilepath;
+
 };
 
 #endif // DRAWAREA_H

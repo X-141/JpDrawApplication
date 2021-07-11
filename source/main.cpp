@@ -1,6 +1,7 @@
 #include "mainwindow.hpp"
 
 #include <QApplication>
+#include <QPointer>
 
 //#include "TestCases.hpp"
 //

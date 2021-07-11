@@ -6,9 +6,12 @@
 #include <QDir>
 #include <QVector>
 #include <QRegularExpression>
+#include <utility>
 
 #include "LineMethods.hpp"
 #include "ImageProcessMethods.hpp"
+
+#include "opencv2/imgproc.hpp"
 
 #include "Log.hpp"
 
@@ -105,7 +108,8 @@ DrawArea::setPenWidth(int width) {
     if (width >= 1)
         mPenWidth = width;
     else
-        LOG("ERROR: Tried to set pen width < 1");
+        Logger::getInstance().logData(Logger::LevelFlags::warning,
+                                      "DrawArea::setPenWidth()","Tried to set pen width < 1.");
 }
 
 int
@@ -175,7 +179,9 @@ DrawArea::pLoadComparisonImages() {
         for(auto png : images) {
             auto match_png = reg_png.match(png);
             if (match_png.captured("character") == match_txt.captured("character")) {
-                qInfo() << match_png.captured("character") << match_txt.captured("number").toInt();
+                Logger::getInstance().logData(Logger::LevelFlags::standard, "DrawArea::pLoadComparisonImages()",
+                                 QString(match_png.captured("character") + " " + match_txt.captured("number")));
+
                 mComparisonImagesDict.insert(match_txt.captured("number").toInt(),
                                              QImage(resourceDir.filePath(png)));
                 images.removeOne(png);
@@ -184,4 +190,3 @@ DrawArea::pLoadComparisonImages() {
         }
     }
 }
-

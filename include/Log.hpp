@@ -1,22 +1,80 @@
 #ifndef LOG_HPP
 #define LOG_HPP
 
-#include <QtGlobal>
 #include <QDebug>
+#include <QDateTime>
+#include <QString>
+#include <QFile>
 
 /**
 * This is a very basic logging system.
-* Currently only supports printing to console.
+* Currently only supports printing to console
+* and writing to file.
 */
 
-//#define DEBUG
+// https://stackoverflow.com/questions/1008019/c-singleton-design-pattern
+class Logger {
+public:
 
-#ifdef DEBUG
-	#define LOG(x) qInfo() << x
-#else
-	#define LOG(x)
-#endif
+    enum LevelFlags {
+        standard = 1,
+        warning = 2,
+        error = 4,
+        info = 8
+    };
 
+    static Logger& getInstance()
+    {
+        static Logger instance;
+        return instance;
+    }
+
+    static void setLevel(int aLevel) {
+        mLevel = aLevel;
+    }
+
+    static void logData(const int aLevel, const QString& aMethodLocation, const QString& aInfo) {
+        QString output = "[ " + getTime() + " ] " + aMethodLocation + ": " + aInfo;
+
+        if (mLevel | aLevel) {
+            qInfo() << output;
+            if(mFile.isOpen()) {
+                QTextStream logFile(&mFile);
+                logFile << output << "\n";
+            }
+        }
+    }
+
+    Logger(Logger const&) = delete;
+    void operator=(Logger const&) = delete;
+
+private:
+    Logger() {
+        open();
+        mLevel = LevelFlags::standard | LevelFlags::warning | LevelFlags::error;
+    }
+
+    ~Logger() {
+        close();
+    }
+
+    static void close() {
+        mFile.close();
+    }
+
+    static void open() {
+        mFile.open(QIODevice::ReadWrite | QIODevice::Text | QIODevice::Truncate);
+    }
+
+    static QString getTime() {
+        return std::move(QDateTime::currentDateTime().toString("hh:mm:ss"));
+    }
+
+private:
+    static inline const char* mOutputFileName = "../Log.txt";
+    static inline QFile mFile = QFile(mOutputFileName);
+    static inline int mLevel;
+};
 
 #endif // !LOG_HPP
 

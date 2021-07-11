@@ -126,7 +126,6 @@ int
 TechniqueMethods::ROITranslocation(const cv::Ptr<cv::ml::KNearest>& aKNNModel,
                                    const cv::Mat& aBaseImage, bool debugFlag) {
 
-    // TODO: I gotta clean this method up to use the functions above.
     if(debugFlag) cv::imwrite("RAW_IMAGE.png", aBaseImage);
 
     cv::Rect roi = ImageMethods::obtainROI(aBaseImage);

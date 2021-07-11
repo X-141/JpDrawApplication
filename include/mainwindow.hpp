@@ -3,6 +3,9 @@
 
 #include <QMainWindow>
 #include <QPainter>
+#include <QPointer>
+
+#include "Log.hpp"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -33,13 +36,6 @@ public slots:
     */
     void compareLayer(bool);
 
-//    /**
-//    * @brief changePenWidth
-//    * This slot will change the width of the
-//    * pen for the DrawArea.
-//    */
-//    void changePenWidth(int);
-
     /**
     * @brief keyPressEvent
     * Capture key combinations:
@@ -53,8 +49,8 @@ private:
     DrawArea* mDrawArea;
     QLabel* mPredictionArea;
     QPushButton* mCompareButton;
-//    QSlider* mPenWidthSlider;
 
     bool mCtrlKey_modifier;
+
 };
 #endif // MAINWINDOW_H
