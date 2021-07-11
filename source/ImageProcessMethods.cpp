@@ -126,23 +126,25 @@ int
 TechniqueMethods::ROITranslocation(const cv::Ptr<cv::ml::KNearest>& aKNNModel,
                                    const cv::Mat& aBaseImage, bool debugFlag) {
 
+    // TODO: I gotta clean this method up to use the functions above.
     if(debugFlag) cv::imwrite("RAW_IMAGE.png", aBaseImage);
 
     cv::Rect roi = ImageMethods::obtainROI(aBaseImage);
-    cv::Mat translocatedImages = ImageMethods::translocateROI(aBaseImage(roi).clone(),
-                                                              aBaseImage.cols, aBaseImage.rows);
+    cv::Mat translocatedImage = ImageMethods::translocateROI(aBaseImage(roi).clone(),
+                                                             aBaseImage.cols, aBaseImage.rows);
 
-    if(debugFlag) cv::imwrite("PRE_IMAGE.png", translocatedImages);
-    cv::resize(translocatedImages, translocatedImages, cv::Size(32,32));
-    cv::threshold(translocatedImages, translocatedImages, 15, 255, cv::THRESH_BINARY);
-    translocatedImages.convertTo(translocatedImages, CV_32F);
+//    if(debugFlag) cv::imwrite("PRE_IMAGE.png", translocatedImage);
+//    cv::resize(translocatedImage, translocatedImage, cv::Size(32,32));
+//    cv::threshold(translocatedImage, translocatedImage, 15, 255, cv::THRESH_BINARY);
+//    translocatedImage.convertTo(translocatedImage, CV_32F);
+//
+//    if(debugFlag) cv::imwrite("POST_IMAGE.png", translocatedImage);
+//    cv::Mat flat_image = translocatedImage.reshape(0,1);
 
-    if(debugFlag) cv::imwrite("POST_IMAGE.png", translocatedImages);
-
-    cv::Mat flat_image = translocatedImages.reshape(0,1);
+    auto flatImage = ImageMethods::prepareMatrixForKNN(translocatedImage);
 
     cv::Mat input, output;
-    input.push_back(flat_image);
+    input.push_back(flatImage);
     input.convertTo(input, CV_32F);
     output.convertTo(output, CV_32F);
 
