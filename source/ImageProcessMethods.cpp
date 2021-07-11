@@ -112,14 +112,14 @@ ImageMethods::findMostFrequentLabel(const std::vector<int>& aLabels, bool debugF
     int mostFrequentLabel = 0;
     int maxValue = -1;
     for(const auto& labels : labelCounter) {
-        Logger::getInstance().logData(level::standard, "ImageMethods::findMostFrequentLabel()",
-                                      "Label: " + QString::number(labels.first) + " count: " + QString::number(labels.second));
+        LOG(level::standard, "ImageMethods::findMostFrequentLabel()",
+            "Label: " + QString::number(labels.first) + " count: " + QString::number(labels.second));
         if(labels.second > maxValue) {
             mostFrequentLabel = labels.first;
             maxValue = labels.second;
         }
     }
-    Logger::getInstance().logData(level::standard, "ImageMethods::findMostFrequentLabel()",
+    LOG(level::standard, "ImageMethods::findMostFrequentLabel()",
                                   "Most frequent label: " + QString::number(mostFrequentLabel));
     return mostFrequentLabel;
 }
@@ -153,8 +153,7 @@ TechniqueMethods::ROITranslocation(const cv::Ptr<cv::ml::KNearest>& aKNNModel,
     aKNNModel->findNearest(input, 4, output);
     int calculated_label = (int)output.at<float>(0);
 
-    Logger::getInstance().logData(level::standard, "TechniqueMethods::ROITranslocation",
-                                  "Calculated Label: " + QString(calculated_label));
+    LOG(level::standard, "TechniqueMethods::ROITranslocation", "Calculated Label: " + QString(calculated_label));
 
     return calculated_label;
 }
@@ -174,8 +173,7 @@ TechniqueMethods::ROIRescaling(const cv::Ptr<cv::ml::KNearest>& aKNNModel,
                                                  aBaseImage.rows, aBaseImage.cols, debugFlag);
 
     if(rescaledMats.empty()) {
-        Logger::getInstance().logData(level::standard, "TechniqueMethods::ROIRescaling",
-                                      "rescaleROI() returned a empty vector.");
+        LOG(level::standard, "TechniqueMethods::ROIRescaling", "rescaleROI() returned a empty vector.");
         return 0;
     }
 

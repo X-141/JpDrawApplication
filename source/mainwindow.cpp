@@ -60,8 +60,7 @@ MainWindow::~MainWindow()
 void
 MainWindow::compareLayer(bool checked) {
     //LOG("Now comparing layers");
-    Logger::getInstance().logData(level::info,
-                                  "MainWindow::CompareLayer()", "Now comparing layers");
+    LOG(level::info, "MainWindow::CompareLayer()", "Now comparing layers");
     int loadIndex = mDrawArea->compareLayer();
     QImage loadImage = mDrawArea->getComparisonImage(loadIndex);
     mPredictionArea->setPixmap(QPixmap::fromImage(loadImage));
@@ -69,22 +68,19 @@ MainWindow::compareLayer(bool checked) {
 
 void
 MainWindow::keyPressEvent(QKeyEvent* event) {
-    Logger::getInstance().logData(level::info, "MainWindow::KeyPressEvent()",
-                                  "Handling key press event.");
+    LOG(level::info, "MainWindow::KeyPressEvent()", "Handling key press event.");
     switch (event->key()) {
         case Qt::Key_Control:
-            Logger::getInstance().logData(level::info, "MainWindow::KeyPressEvent()",
-                                          "Control key pressed.");
+            LOG(level::info, "MainWindow::KeyPressEvent()", "Control key pressed.");
             mCtrlKey_modifier = true;
             break;
         case Qt::Key_Z:
-            Logger::getInstance().logData(level::info, "MainWindow::KeyPressEvent()",
+            LOG(level::info, "MainWindow::KeyPressEvent()",
                                           "Z key pressed.");
             // Make sure user is pressing ctrl and that the draw area is
             // not null
             if (mCtrlKey_modifier && mDrawArea) {
-                Logger::getInstance().logData(level::info, "MainWindow::KeyPressEvent()",
-                                              "Performing undo operation.");
+                LOG(level::info, "MainWindow::KeyPressEvent()", "Performing undo operation.");
                 mDrawArea->undoLayer();
             }
             break;
@@ -95,8 +91,7 @@ MainWindow::keyPressEvent(QKeyEvent* event) {
 
 void
 MainWindow::keyReleaseEvent(QKeyEvent* event) {
-    Logger::getInstance().logData(level::info, "MainWindow::keyPressEvent()",
-                                  "Handling key release event.");
+    LOG(level::info, "MainWindow::keyPressEvent()", "Handling key release event.");
     if (event->key() == Qt::Key_Control)
         mCtrlKey_modifier = false;
 }

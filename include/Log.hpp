@@ -29,9 +29,9 @@ public:
         return instance;
     }
 
-    static void setLevel(int aLevel) {
-        mLevel = aLevel;
-    }
+//    static void setLevel(int aLevel) {
+//        mLevel = aLevel;
+//    }
 
     static void logData(const int aLevel, const QString& aMethodLocation, const QString& aInfo) {
         QString output = "[ " + getTime() + " ] " + aMethodLocation + ": " + aInfo;
@@ -75,6 +75,8 @@ private:
     static inline QFile mFile = QFile(mOutputFileName);
     static inline int mLevel;
 };
+
+const auto LOG = Logger::getInstance().logData;
 
 #endif // !LOG_HPP
 
