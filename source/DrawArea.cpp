@@ -8,6 +8,7 @@
 #include <QRegularExpression>
 
 #include "LineMethods.hpp"
+#include "ImageProcessMethods.hpp"
 
 #include "Log.hpp"
 

@@ -2,15 +2,13 @@
 #define IMAGEPROCESSMETHODS_HPP
 
 #include <vector>
-#include "opencv2/imgproc.hpp"
 #include "opencv2/ml.hpp"
-#include "opencv2/imgcodecs.hpp"
 
-#include <QImage>
-#include <QDebug>
+class QImage;
 
 namespace ImageMethods {
 
+    // References: http://qtandopencv.blogspot.com/2013/08/how-to-convert-between-cvmat-and-qimage.html
     cv::Mat qImageToCvMat(QImage image);
 
     /**
@@ -57,8 +55,5 @@ namespace TechniqueMethods {
 
     int ROIRescaling(const cv::Ptr<cv::ml::KNearest>& aKNNModel, const cv::Mat& aBaseImage, bool debugFlag);
 }
-
-// References: http://qtandopencv.blogspot.com/2013/08/how-to-convert-between-cvmat-and-qimage.html
-//cv::Mat qImageToCvMat(QImage& image);
 
 #endif // !IMAGEPROCESSMETHODS_HPP

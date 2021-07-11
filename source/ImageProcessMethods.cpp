@@ -1,5 +1,10 @@
 #include "ImageProcessMethods.hpp"
 #include <QString>
+#include <QDebug>
+#include <QImage>
+
+#include "opencv2/imgcodecs.hpp"
+#include "opencv2/imgproc.hpp"
 
 cv::Mat
 ImageMethods::qImageToCvMat(QImage image) {

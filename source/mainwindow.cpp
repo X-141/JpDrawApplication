@@ -2,7 +2,6 @@
 #include "ui_mainwindow.h"
 
 #include "DrawArea.hpp"
-#include "ImageProcessMethods.hpp"
 
 #include <QMouseEvent>
 #include <QPixmap>

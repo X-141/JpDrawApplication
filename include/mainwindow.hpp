@@ -14,7 +14,6 @@ class QPixmap;
 
 class DrawArea;
 class QPushButton;
-class QSlider;
 class QLabel;
 
 class MainWindow : public QMainWindow
