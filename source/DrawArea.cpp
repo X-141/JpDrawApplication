@@ -6,7 +6,6 @@
 #include <QDir>
 #include <QVector>
 #include <QRegularExpression>
-#include <utility>
 
 #include "LineMethods.hpp"
 #include "ImageProcessMethods.hpp"
@@ -119,7 +118,8 @@ DrawArea::compareLayer() {
     cv::bitwise_not(hardLayerMat, hardLayerMat);
 
     //return TechniqueMethods::ROITranslocation(mKnn, hardLayerMat, true);
-    return TechniqueMethods::ROIRescaling(mKnn, hardLayerMat, true);
+    auto scaledImages = TechniqueMethods::ROIRescaling(hardLayerMat, true);
+    return ImageMethods::passThroughKNNModel(mKnn, scaledImages);
 }
 
 QImage 

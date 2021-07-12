@@ -7,9 +7,32 @@
 class QImage;
 
 namespace ImageMethods {
-
-    // References: http://qtandopencv.blogspot.com/2013/08/how-to-convert-between-cvmat-and-qimage.html
+    /**
+    * @brief qImageToCvMat
+    * Converts a QImage to a opencv matrix.
+    * References: http://qtandopencv.blogspot.com/2013/08/how-to-convert-between-cvmat-and-qimage.html
+    */
     cv::Mat qImageToCvMat(QImage image);
+
+    /**
+    * @brief passThroughKNNModel
+    * convenience method used to pass
+    * a processed image through a knn model
+    * and return a label
+    */
+    int passThroughKNNModel(const cv::Ptr<cv::ml::KNearest>& aKNNModel, const cv::Mat& aProcessedImage);
+
+    /**
+    * @brief passThroughKNNModel
+    * convenience method used to pass
+    * a processed image through a knn model
+    * and return a label.
+    *
+    * This is alternative method if user has
+    * a set of images that need to be passed
+    * through a knn model.
+    */
+    int passThroughKNNModel(const cv::Ptr<cv::ml::KNearest>& aKNNModel, const std::vector<cv::Mat>& aProcessedImages);
 
     /**
     * @brief prepareMatrixForKNN
@@ -47,13 +70,23 @@ namespace ImageMethods {
     * Given a vector of labels, return the label
     * that occurs most frequently.
     */
-    int findMostFrequentLabel(const std::vector<int>& aLabels, bool debugFlag);
+    int findMostFrequentLabel(const std::vector<int>& aLabels);
 }
 
 namespace TechniqueMethods {
-    int ROITranslocation(const cv::Ptr<cv::ml::KNearest>& aKNNModel, const cv::Mat& aBaseImage, bool debugFlag);
+    // Method Description:
+    // Takes a given base image, find ROI, and centers it into image of original dimensions.
+    // Purpose:
+    // The dataset used to create the kNN model has images that are centered.
+    cv::Mat ROITranslocation(const cv::Mat& aBaseImage, bool debugFlag);
 
-    int ROIRescaling(const cv::Ptr<cv::ml::KNearest>& aKNNModel, const cv::Mat& aBaseImage, bool debugFlag);
+    // Method Description:
+    // Takes a given base image, find ROI, and centers it into image of original dimensions.
+    // After centering, the ROI is then scaled to various scalar values.
+    // Purpose:
+    // Because characters can vary in dimensions, we can scale the ROI to mimic
+    // how varied characters can be drawn.
+    std::vector<cv::Mat> ROIRescaling(const cv::Mat& aBaseImage, bool debugFlag);
 }
 
 #endif // !IMAGEPROCESSMETHODS_HPP

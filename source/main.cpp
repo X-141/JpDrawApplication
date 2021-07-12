@@ -2,7 +2,7 @@
 
 #include <QApplication>
 
-//#include "TestCases.hpp"
+//#include "TestCases_LineMethods.hpp"
 //
 // int main(int argc, char* argv[]) {
 // 	testing::InitGoogleTest(&argc, argv);
