@@ -35,8 +35,7 @@ public:
 
     static void logData(const int aLevel, const QString& aMethodLocation, const QString& aInfo) {
         QString output = "[ " + getTime() + " ] " + aMethodLocation + ": " + aInfo;
-
-        if (mLevel | aLevel) {
+        if (mLevel & aLevel) {
             qInfo() << output;
             if(mFile.isOpen()) {
                 QTextStream logFile(&mFile);
@@ -76,7 +75,7 @@ private:
     static inline int mLevel;
 };
 
-const auto LOG = Logger::getInstance().logData;
+static const auto LOG = Logger::getInstance().logData;
 
 #endif // !LOG_HPP
 
