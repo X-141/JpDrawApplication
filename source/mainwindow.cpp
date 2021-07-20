@@ -26,7 +26,7 @@ MainWindow::MainWindow(QWidget *parent)
     mDrawArea->setEnabled(true);
     mDrawArea->setCursor(QCursor(Qt::CrossCursor));
     mDrawArea->resizeDrawArea(QSize(384, 384));
-    mDrawArea->setPenWidth(20);
+    mDrawArea->setPenWidth(30);
     mUi->gridLayout->addWidget(mDrawArea, 0,0,1,1);
 
     mPredictionArea = new QLabel(mUi->centralwidget);
