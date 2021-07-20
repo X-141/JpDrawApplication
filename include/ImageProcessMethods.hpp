@@ -4,6 +4,8 @@
 #include <vector>
 #include "opencv2/ml.hpp"
 
+constexpr int IMAGE_DIMENSION = 48;
+
 class QImage;
 
 namespace ImageMethods {

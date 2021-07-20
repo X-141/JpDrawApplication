@@ -83,7 +83,7 @@ ImageMethods::obtainROI(cv::Mat aMat) {
 
 cv::Mat
 ImageMethods::prepareMatrixForKNN(cv::Mat aMat) {
-    cv::resize(aMat, aMat, cv::Size(32,32));
+    cv::resize(aMat, aMat, cv::Size(IMAGE_DIMENSION,IMAGE_DIMENSION));
     cv::threshold(aMat, aMat, 15, 255, cv::THRESH_BINARY);
     aMat.convertTo(aMat, CV_32F);
     return aMat.reshape(0, 1);

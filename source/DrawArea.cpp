@@ -24,7 +24,7 @@ DrawArea::DrawArea(QWidget* parent)
       mId(1),
       mPenWidth(30),
       mKnn(cv::ml::KNearest::load(resourcePath + "kNN_ETL_Subset.opknn")),
-      mKnnDictFilepath(resourcePath + "knnDictionary.txt")
+      mKnnDictFilepath(resourcePath + "kNNDictionary.txt")
 {
     this->clear();
 
