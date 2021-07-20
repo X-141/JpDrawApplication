@@ -84,9 +84,9 @@ ImageMethods::obtainROI(cv::Mat aMat) {
 cv::Mat
 ImageMethods::prepareMatrixForKNN(cv::Mat aMat) {
     cv::resize(aMat, aMat, cv::Size(IMAGE_DIMENSION,IMAGE_DIMENSION));
-    //cv::threshold(aMat, aMat, 15, 255, cv::THRESH_BINARY);
+    cv::threshold(aMat, aMat, 15, 255, cv::THRESH_BINARY);
     // Cleaner thresholding method. Produces good results.
-    cv::threshold(aMat, aMat, 0, 255, cv::THRESH_BINARY | cv::THRESH_OTSU);
+    //cv::threshold(aMat, aMat, 0, 255, cv::THRESH_BINARY | cv::THRESH_OTSU);
     //static int value;
     //cv::imwrite("converted_" + std::to_string(value++) + ".png", aMat);
     aMat.convertTo(aMat, CV_32F);
