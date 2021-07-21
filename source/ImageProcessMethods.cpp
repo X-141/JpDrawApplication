@@ -155,15 +155,15 @@ ImageMethods::findMostFrequentLabel(const std::vector<int>& aLabels) {
     int mostFrequentLabel = 0;
     int maxValue = -1;
     for(const auto& labels : labelCounter) {
-        LOG(level::standard, "ImageMethods::findMostFrequentLabel()",
-            "Label: " + QString::number(labels.first) + " count: " + QString::number(labels.second));
+        // LOG(level::standard, "ImageMethods::findMostFrequentLabel()",
+        //  "Label: " + QString::number(labels.first) + " count: " + QString::number(labels.second));
         if(labels.second > maxValue) {
             mostFrequentLabel = labels.first;
             maxValue = labels.second;
         }
     }
-    LOG(level::standard, "ImageMethods::findMostFrequentLabel()",
-                                  "Most frequent label: " + QString::number(mostFrequentLabel));
+    // LOG(level::standard, "ImageMethods::findMostFrequentLabel()",
+    //  "Most frequent label: " + QString::number(mostFrequentLabel));
     return mostFrequentLabel;
 }
 
