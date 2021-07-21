@@ -39,10 +39,6 @@ private:
     // Is the layer currently being shown?
     bool mEnabled;
 
-    // In the future have some sort of way to know
-    // what the "core" pixels are for removing pixels
-    // based on mouse position.
-
 };
 
 

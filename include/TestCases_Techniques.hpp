@@ -19,6 +19,14 @@
 
 #include <gtest/gtest.h>
 
+using logEntry = std::tuple<QString, char, int, int, bool>;
+
+// Set a reasonable threshold for successful
+// method. 90% accuracy given a method is good enough for
+// a initial testing threshold.
+// This can be set to a different value.
+constexpr double ERROR_THRESHOLD = .90;
+
 std::vector<std::pair<QString, cv::Mat>> LoadTestingImages() {
     QDir testingDir = QDir(QString("../testing"));
     QStringList imagesList = testingDir.entryList(QStringList() << "*.png" << "*.PNG", QDir::Files);
@@ -64,50 +72,142 @@ cv::Ptr<cv::ml::KNearest> LoadKNN() {
     return cv::ml::KNearest::load("../resource/kNN_ETL_Subset.opknn");
 }
 
-TEST(TechniqueTests, SingleConvertedImage) {
-    auto images = LoadTestingImages();
-    auto labelToChar = LoadDictionary();
-    auto kNN = LoadKNN();
+void LogTestData(const std::vector<logEntry>& aLogEntries, const char* aOutputFile, 
+    float aTotalTests, float aTotalSuccess, float aTotalFails) {
+
+    QFile logFile = QFile(aOutputFile);
+    logFile.open(QIODevice::ReadWrite | QIODevice::Text | QIODevice::Truncate);
+
+    if(logFile.isOpen()) {
+        QTextStream stream(&logFile);
+
+        double successRate = aTotalSuccess / aTotalTests;
+
+        stream << "RESULTS [ TESTS : SUCCESS : FAILS ] -> " 
+            << "[ " << aTotalTests << " : " << aTotalSuccess << " : " << aTotalFails << " ]\n";
+        stream << "PERCENTAGE (SUCCESS/TESTS) -> " <<  successRate * 100.0 << "%\n";
+
+
+        char character;
+        int actualLabel;
+        int calcLabel;
+        QString equal;
+        QString pngName;
+        for(const logEntry& entry : aLogEntries) {
+            pngName = std::get<0>(entry);
+            character = std::get<1>(entry);
+            actualLabel = std::get<2>(entry);
+            calcLabel = std::get<3>(entry);
+
+            // Boolean value at index 4
+            equal = "True";
+            if(!std::get<4>(entry))
+                equal = "False";
+
+            stream << pngName << "," << character << "," << actualLabel << ","
+                << calcLabel << "," << equal << "\n"; 
+        }
+
+    } else
+        std::cerr << "[ INFODATA ] unable to open file: " << aOutputFile << "\n";
+}
+
+
+TEST(TechniqueTests, ROITranslocation) {
+    std::vector<std::pair<QString, cv::Mat>> images = LoadTestingImages();
+    std::map<char, int> labelToChar = LoadDictionary();
+    cv::Ptr<cv::ml::KNearest>  kNN = LoadKNN();
 
     // PNG name, char, true label, calculated label, Equal?
-    std::vector<std::tuple<QString, char, int, int, bool>> testEntry;
+    std::vector<logEntry> testEntries;
 
+    QRegularExpression regexprPNG("(?<number>\\d+)_(?<character>\\w+).png");
+
+    int trueLabel = 0;
+    int kNNLabel = 0;
+    char characterLabel = '0';
+
+    double totalTests = 0;
+    double totalSuccess = 0;
+    double totalFails = 0;
+    for(const auto& imageInfo : images) {
+
+        characterLabel = regexprPNG.match(imageInfo.first).captured("character")[0].toLatin1();
+        trueLabel = labelToChar.find(characterLabel)->second;
+        
+        auto preparedImage = TechniqueMethods::ROITranslocation(imageInfo.second, false);
+        kNNLabel = ImageMethods::passThroughKNNModel(kNN, preparedImage);
+
+        testEntries.emplace_back(std::make_tuple(imageInfo.first, characterLabel, trueLabel, 
+            kNNLabel, trueLabel == kNNLabel));
+
+
+        if(trueLabel == kNNLabel)
+            ++totalSuccess;
+        else
+            ++totalFails;
+
+        ++totalTests;
+    }
+    
+    double successRate = totalSuccess / totalTests;
+
+    ASSERT_TRUE( successRate >= ERROR_THRESHOLD);
+
+    std::cerr << "[ INFODATA ] RESULTS [ TESTS : SUCCESS : FAILS ] -> " 
+        << "[ " << totalTests << " : " << totalSuccess << " : " << totalFails << " ]\n";
+    std::cerr << "[ INFODATA ] PERCENTAGE (SUCCESS/TESTS) -> " <<  successRate * 100.0 << "%\n";
+
+    LogTestData(testEntries, "../SingleConvertedImage_Data.csv", totalTests, totalSuccess, totalFails);
+}
+
+TEST(TechniqueTests, ROIRescaling) {
+    std::vector<std::pair<QString, cv::Mat>> images = LoadTestingImages();
+    std::map<char, int> labelToChar = LoadDictionary();
+    cv::Ptr<cv::ml::KNearest>  kNN = LoadKNN();
+
+    // PNG name, char, true label, calculated label, Equal?
+    std::vector<logEntry> testEntries;
     QRegularExpression reg_png("(?<number>\\d+)_(?<character>\\w+).png");
 
-    int true_label = 0;
-    int knn_label = 0;
-    char character_label = '0';
+    int trueLabel = 0;
+    int kNNLabel = 0;
+    char characterLabel = '0';
 
-    int total_chars = 0;
-    int total_success = 0;
-    int total_fails = 0;
+    double totalTests = 0;
+    double totalSuccess = 0;
+    double totalFails = 0;
     for(const auto& imageInfo : images) {
-        //std::cout << imageInfo.first.toStdString() << std::endl;
-        auto flatImage = ImageMethods::prepareMatrixForKNN(imageInfo.second);
-        character_label = reg_png.match(imageInfo.first).captured("character")[0].toLatin1();
-        true_label = labelToChar.find(character_label)->second;
-        knn_label = ImageMethods::passThroughKNNModel(kNN, flatImage);
-
-        testEntry.emplace_back(std::make_tuple(imageInfo.first, character_label, true_label, 
-            knn_label, true_label == knn_label));
         
-        std::cout << imageInfo.first.toStdString() << "\n" <<
-        "\t" << character_label << "\n" <<
-        "\t" << true_label << "\t" << knn_label;
+        characterLabel = reg_png.match(imageInfo.first).captured("character")[0].toLatin1();
+        trueLabel = labelToChar.find(characterLabel)->second;
 
-        if(true_label == knn_label) {
-            std::cout << "\t" << "TRUE" << std::endl;
-            total_success++;
-        }
-        else {
-            std::cout << "\t" << "FALSE" << std::endl;
-            total_fails++;
-        }
-        ++total_chars;
+        auto translocatedImage = TechniqueMethods::ROIRescaling(imageInfo.second, false);
+        kNNLabel = ImageMethods::passThroughKNNModel(kNN, translocatedImage);
+
+        testEntries.emplace_back(std::make_tuple(imageInfo.first, characterLabel, trueLabel, 
+            kNNLabel, trueLabel == kNNLabel));
+
+        if(trueLabel == kNNLabel)
+            ++totalSuccess;
+        else
+            ++totalFails;
+
+        ++totalTests;
     }
-    std::cout << "TOTAL: " << total_chars << "\n\t" <<
-    "TOTAL SUCCESS: " << total_success << "\n\t" <<
-    "TOTAL FAILS: " << total_fails << std::endl;
+
+    double successRate = totalSuccess / totalTests;
+
+    ASSERT_TRUE( successRate >= ERROR_THRESHOLD);
+
+    // testing::internal::CaptureStdout();
+
+    std::cerr << "[ INFODATA ] RESULTS [ TESTS : SUCCESS : FAILS ] -> " 
+        << "[ " << totalTests << " : " << totalSuccess << " : " << totalFails << " ]\n";
+    std::cerr << "[ INFODATA ] PERCENTAGE (SUCCESS/TESTS) -> " <<  successRate * 100.0 << "%\n";
+
+
+    LogTestData(testEntries, "../ROIRescaling_Data.csv", totalTests, totalSuccess, totalFails);
 }
 
 #endif
