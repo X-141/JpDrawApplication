@@ -158,7 +158,7 @@ TEST(TechniqueTests, ROITranslocation) {
         << "[ " << totalTests << " : " << totalSuccess << " : " << totalFails << " ]\n";
     std::cerr << "[ INFODATA ] PERCENTAGE (SUCCESS/TESTS) -> " <<  successRate * 100.0 << "%\n";
 
-    LogTestData(testEntries, "../SingleConvertedImage_Data.csv", totalTests, totalSuccess, totalFails);
+    LogTestData(testEntries, "../ROITranslocation_Data.csv", totalTests, totalSuccess, totalFails);
 }
 
 TEST(TechniqueTests, ROIRescaling) {
