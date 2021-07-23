@@ -1,12 +1,15 @@
 #ifndef DRAWAREA_H
 #define DRAWAREA_H
 
+#include <vector>
+#include "opencv2/ml.hpp"
+
 #include <QLabel>
 #include <QMap>
-#include "DrawLayer.hpp"
+#include <QPointer>
 
-#include "opencv2/ml.hpp"
-//class ProcessLayer;
+#include "DrawLayer.hpp"
+#include "Log.hpp"
 
 class DrawArea : public QLabel {
     Q_OBJECT
@@ -44,7 +47,7 @@ public:
     * Takes the currently drawn hardlayer dimensions
     * and scales the set of comparison images to match.
     * The important part is that we will compute the comparison
-    * value betweent the hardlayer image and the comparison sets.
+    * value between the hardlayer image and the comparison sets.
     */
     int compareLayer();
 
@@ -81,28 +84,17 @@ private:
     */
     void pLoadComparisonImages();
 
-    /*
-     * @brief pObtainROI
-     * Given a drawn image, find the region
-     * of interest that contains the character
-     */
-    static cv::Rect pObtainROI(cv::Mat aMat);
-
-    /*
-     * @brief pTranslocateROI
-     * Given a ROI, it will draw the ROI
-     * on a base_image of aHeight and aWidth.
-     */
-    static cv::Mat pTranslocateROI(const cv::Mat& aROI, int aHeight, int aWidth);
-
 private:
     // Set to true on mouse down. Set to false on mouse up
     bool mCurrentlyDrawing;
+
     // Hard layer is what is shown to the user. Contains
     // draw virtual layers that are enabled.
     DrawLayer mHardLayer;
+
     // Virtual layer is the individual layers that are drawn.
     DrawLayer mVirtualLayer;
+
     // Used to calculate a line of best fit as the mouse positions
     // are polled.
     // Primarily used in the pDrawPoint() method.
@@ -112,10 +104,13 @@ private:
     // store virtual layers in this vector. They are used
     // to draw the hard layer.
     QVector<DrawLayer> mVirtualLayerVector;
+
     // Incremented when _add_new_layer is called.
     uint mId;
+
     // Slide width
     uint mPenWidth;
+
     // A vector of images to display depending
     // on how closely they resemble the image the user has drawn.
     // QVector<QImage> mComparisonImages;
@@ -127,6 +122,7 @@ private:
     // text file path to load in numerical keys to images
     // based on the knn model.
     std::string mKnnDictFilepath;
+
 };
 
 #endif // DRAWAREA_H
