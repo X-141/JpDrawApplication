@@ -16,10 +16,16 @@
 #include <iostream>
 #include <algorithm>
 #include <map>
+#include <chrono>
 
 #include <gtest/gtest.h>
 
-using logEntry = std::tuple<QString, char, int, int, bool>;
+using logEntry = std::tuple<QString, char, int, int, bool, double>;
+
+using std::chrono::high_resolution_clock;
+using std::chrono::duration_cast;
+using std::chrono::duration;
+using std::chrono::milliseconds;
 
 // Set a reasonable threshold for successful
 // method. 90% accuracy given a method is good enough for
@@ -73,7 +79,7 @@ cv::Ptr<cv::ml::KNearest> LoadKNN() {
 }
 
 void LogTestData(const std::vector<logEntry>& aLogEntries, const char* aOutputFile, 
-    float aTotalTests, float aTotalSuccess, float aTotalFails) {
+    float aTotalTests, float aTotalSuccess, float aTotalFails, double aTotalTime, double aAverageTime) {
 
     QFile logFile = QFile(aOutputFile);
     logFile.open(QIODevice::ReadWrite | QIODevice::Text | QIODevice::Truncate);
@@ -86,11 +92,13 @@ void LogTestData(const std::vector<logEntry>& aLogEntries, const char* aOutputFi
         stream << "RESULTS [ TESTS : SUCCESS : FAILS ] -> " 
             << "[ " << aTotalTests << " : " << aTotalSuccess << " : " << aTotalFails << " ]\n";
         stream << "PERCENTAGE (SUCCESS/TESTS) -> " <<  successRate * 100.0 << "%\n";
+        stream << "TIME (ms) [ TOTAL : AVERAGE ] -> " << "[ " << aTotalTime << " : " << aAverageTime << " ]\n";
 
 
         char character;
         int actualLabel;
         int calcLabel;
+        double timeTaken;
         QString equal;
         QString pngName;
         for(const logEntry& entry : aLogEntries) {
@@ -98,6 +106,7 @@ void LogTestData(const std::vector<logEntry>& aLogEntries, const char* aOutputFi
             character = std::get<1>(entry);
             actualLabel = std::get<2>(entry);
             calcLabel = std::get<3>(entry);
+            timeTaken = std::get<4>(entry);
 
             // Boolean value at index 4
             equal = "True";
@@ -105,7 +114,7 @@ void LogTestData(const std::vector<logEntry>& aLogEntries, const char* aOutputFi
                 equal = "False";
 
             stream << pngName << "," << character << "," << actualLabel << ","
-                << calcLabel << "," << equal << "\n"; 
+                << calcLabel << "," << equal << "," << timeTaken << "\n"; 
         }
 
     } else
@@ -130,17 +139,28 @@ TEST(TechniqueTests, ROITranslocation) {
     double totalTests = 0;
     double totalSuccess = 0;
     double totalFails = 0;
+
+    double totalTime = 0;
+    double timeTaken = 0;
+    auto startTime = high_resolution_clock::now();
+    auto endTime = high_resolution_clock::now();
+
     for(const auto& imageInfo : images) {
 
         characterLabel = regexprPNG.match(imageInfo.first).captured("character")[0].toLatin1();
         trueLabel = labelToChar.find(characterLabel)->second;
         
+        startTime = high_resolution_clock::now();
         auto preparedImage = TechniqueMethods::ROITranslocation(imageInfo.second, false);
         kNNLabel = ImageMethods::passThroughKNNModel(kNN, preparedImage);
+        endTime = high_resolution_clock::now();
+        duration<double, std::milli> db_time = endTime - startTime;
+        timeTaken = db_time.count();
 
         testEntries.emplace_back(std::make_tuple(imageInfo.first, characterLabel, trueLabel, 
-            kNNLabel, trueLabel == kNNLabel));
+            kNNLabel, trueLabel == kNNLabel, timeTaken));
 
+        totalTime += timeTaken;
 
         if(trueLabel == kNNLabel)
             ++totalSuccess;
@@ -149,6 +169,9 @@ TEST(TechniqueTests, ROITranslocation) {
 
         ++totalTests;
     }
+
+    
+    double averageTime = totalTime / totalTests;
     
     double successRate = totalSuccess / totalTests;
 
@@ -157,8 +180,9 @@ TEST(TechniqueTests, ROITranslocation) {
     std::cerr << "[ INFODATA ] RESULTS [ TESTS : SUCCESS : FAILS ] -> " 
         << "[ " << totalTests << " : " << totalSuccess << " : " << totalFails << " ]\n";
     std::cerr << "[ INFODATA ] PERCENTAGE (SUCCESS/TESTS) -> " <<  successRate * 100.0 << "%\n";
+    std::cerr << "[ INFODATA ] TIME (ms) [ TOTAL : AVERAGE ] -> " << "[ " << totalTime << " : " << averageTime << " ]\n";
 
-    LogTestData(testEntries, "../ROITranslocation_Data.csv", totalTests, totalSuccess, totalFails);
+    LogTestData(testEntries, "../ROITranslocation_Data.csv", totalTests, totalSuccess, totalFails, totalTime, averageTime);
 }
 
 TEST(TechniqueTests, ROIRescaling) {
@@ -177,16 +201,28 @@ TEST(TechniqueTests, ROIRescaling) {
     double totalTests = 0;
     double totalSuccess = 0;
     double totalFails = 0;
+
+    double totalTime = 0;
+    double timeTaken = 0;
+    auto startTime = high_resolution_clock::now();
+    auto endTime = high_resolution_clock::now();
+
     for(const auto& imageInfo : images) {
         
         characterLabel = reg_png.match(imageInfo.first).captured("character")[0].toLatin1();
         trueLabel = labelToChar.find(characterLabel)->second;
 
+        startTime = high_resolution_clock::now();
         auto translocatedImage = TechniqueMethods::ROIRescaling(imageInfo.second, false);
         kNNLabel = ImageMethods::passThroughKNNModel(kNN, translocatedImage);
+        endTime = high_resolution_clock::now();
+        duration<double, std::milli> db_time = endTime - startTime;
+        timeTaken = db_time.count();
 
         testEntries.emplace_back(std::make_tuple(imageInfo.first, characterLabel, trueLabel, 
-            kNNLabel, trueLabel == kNNLabel));
+            kNNLabel, trueLabel == kNNLabel, timeTaken));
+
+        totalTime += timeTaken;
 
         if(trueLabel == kNNLabel)
             ++totalSuccess;
@@ -195,6 +231,8 @@ TEST(TechniqueTests, ROIRescaling) {
 
         ++totalTests;
     }
+
+    double averageTime = totalTime / totalTests;
 
     double successRate = totalSuccess / totalTests;
 
@@ -205,9 +243,10 @@ TEST(TechniqueTests, ROIRescaling) {
     std::cerr << "[ INFODATA ] RESULTS [ TESTS : SUCCESS : FAILS ] -> " 
         << "[ " << totalTests << " : " << totalSuccess << " : " << totalFails << " ]\n";
     std::cerr << "[ INFODATA ] PERCENTAGE (SUCCESS/TESTS) -> " <<  successRate * 100.0 << "%\n";
+    std::cerr << "[ INFODATA ] TIME (ms) [ TOTAL : AVERAGE ] -> " << "[ " << totalTime << " : " << averageTime << " ]\n";
 
 
-    LogTestData(testEntries, "../ROIRescaling_Data.csv", totalTests, totalSuccess, totalFails);
+    LogTestData(testEntries, "../ROIRescaling_Data.csv", totalTests, totalSuccess, totalFails, totalTime, averageTime);
 }
 
 #endif
