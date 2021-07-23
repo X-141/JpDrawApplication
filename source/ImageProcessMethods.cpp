@@ -16,6 +16,45 @@ ImageMethods::qImageToCvMat(QImage image) {
 	return grey_mat.clone();
 }
 
+int
+ImageMethods::passThroughKNNModel(const cv::Ptr<cv::ml::KNearest> &aKNNModel, const cv::Mat &aProcessedImage) {
+    auto flatImage = ImageMethods::prepareMatrixForKNN(aProcessedImage);
+    cv::Mat input, output;
+    input.push_back(flatImage);
+    input.convertTo(input, CV_32F);
+    output.convertTo(output, CV_32F);
+    try {
+        aKNNModel->findNearest(input, 4, output);
+    } catch(const cv::Exception& ex) {
+        ex.what();
+        return 0;
+    }
+    return static_cast<int>(output.at<float>(0));
+}
+
+int
+ImageMethods::passThroughKNNModel(const cv::Ptr<cv::ml::KNearest>& aKNNModel,
+                                  const std::vector<cv::Mat>& aProcessedImages) {
+    auto calculatedLabels = std::vector<int>();
+    calculatedLabels.reserve(aProcessedImages.size());
+    for(auto& mats : aProcessedImages) {
+        auto flatImage = ImageMethods::prepareMatrixForKNN(mats);
+        cv::Mat input, output;
+        input.push_back(flatImage);
+        input.convertTo(input, CV_32F);
+        output.convertTo(output, CV_32F);
+        try {
+            aKNNModel->findNearest(input, 4, output);
+        } catch(const cv::Exception& ex) {
+            ex.what();
+            return 0;
+        }
+        calculatedLabels.push_back((int)output.at<float>(0));
+    }
+
+    return ImageMethods::findMostFrequentLabel(calculatedLabels);
+}
+
 cv::Rect
 ImageMethods::obtainROI(cv::Mat aMat) {
     int max_x = -1, max_y = -1;
@@ -44,8 +83,12 @@ ImageMethods::obtainROI(cv::Mat aMat) {
 
 cv::Mat
 ImageMethods::prepareMatrixForKNN(cv::Mat aMat) {
-    cv::resize(aMat, aMat, cv::Size(32,32));
+    cv::resize(aMat, aMat, cv::Size(IMAGE_DIMENSION,IMAGE_DIMENSION));
     cv::threshold(aMat, aMat, 15, 255, cv::THRESH_BINARY);
+    // Cleaner thresholding method. Produces good results.
+    //cv::threshold(aMat, aMat, 0, 255, cv::THRESH_BINARY | cv::THRESH_OTSU);
+    //static int value;
+    //cv::imwrite("converted_" + std::to_string(value++) + ".png", aMat);
     aMat.convertTo(aMat, CV_32F);
     return aMat.reshape(0, 1);
 }
@@ -98,7 +141,7 @@ ImageMethods::rescaleROI(const std::vector<float>& aTargetScalars, const cv::Mat
 }
 
 int
-ImageMethods::findMostFrequentLabel(const std::vector<int>& aLabels, bool debugFlag) {
+ImageMethods::findMostFrequentLabel(const std::vector<int>& aLabels) {
     std::map<int, int> labelCounter;
 
     for(const auto& label : aLabels) {
@@ -112,22 +155,21 @@ ImageMethods::findMostFrequentLabel(const std::vector<int>& aLabels, bool debugF
     int mostFrequentLabel = 0;
     int maxValue = -1;
     for(const auto& labels : labelCounter) {
-        LOG(level::standard, "ImageMethods::findMostFrequentLabel()",
-            "Label: " + QString::number(labels.first) + " count: " + QString::number(labels.second));
+        // LOG(level::standard, "ImageMethods::findMostFrequentLabel()",
+        //  "Label: " + QString::number(labels.first) + " count: " + QString::number(labels.second));
         if(labels.second > maxValue) {
             mostFrequentLabel = labels.first;
             maxValue = labels.second;
         }
     }
-    LOG(level::standard, "ImageMethods::findMostFrequentLabel()",
-                                  "Most frequent label: " + QString::number(mostFrequentLabel));
+    // LOG(level::standard, "ImageMethods::findMostFrequentLabel()",
+    //  "Most frequent label: " + QString::number(mostFrequentLabel));
     return mostFrequentLabel;
 }
 
 
-int
-TechniqueMethods::ROITranslocation(const cv::Ptr<cv::ml::KNearest>& aKNNModel,
-                                   const cv::Mat& aBaseImage, bool debugFlag) {
+cv::Mat
+TechniqueMethods::ROITranslocation(const cv::Mat& aBaseImage, bool debugFlag) {
 
     if(debugFlag) cv::imwrite("RAW_IMAGE.png", aBaseImage);
 
@@ -135,32 +177,11 @@ TechniqueMethods::ROITranslocation(const cv::Ptr<cv::ml::KNearest>& aKNNModel,
     cv::Mat translocatedImage = ImageMethods::translocateROI(aBaseImage(roi).clone(),
                                                              aBaseImage.cols, aBaseImage.rows);
 
-//    if(debugFlag) cv::imwrite("PRE_IMAGE.png", translocatedImage);
-//    cv::resize(translocatedImage, translocatedImage, cv::Size(32,32));
-//    cv::threshold(translocatedImage, translocatedImage, 15, 255, cv::THRESH_BINARY);
-//    translocatedImage.convertTo(translocatedImage, CV_32F);
-//
-//    if(debugFlag) cv::imwrite("POST_IMAGE.png", translocatedImage);
-//    cv::Mat flat_image = translocatedImage.reshape(0,1);
-
-    auto flatImage = ImageMethods::prepareMatrixForKNN(translocatedImage);
-
-    cv::Mat input, output;
-    input.push_back(flatImage);
-    input.convertTo(input, CV_32F);
-    output.convertTo(output, CV_32F);
-
-    aKNNModel->findNearest(input, 4, output);
-    int calculated_label = (int)output.at<float>(0);
-
-    LOG(level::standard, "TechniqueMethods::ROITranslocation", "Calculated Label: " + QString(calculated_label));
-
-    return calculated_label;
+    return translocatedImage;
 }
 
-int
-TechniqueMethods::ROIRescaling(const cv::Ptr<cv::ml::KNearest>& aKNNModel,
-                               const cv::Mat& aBaseImage, bool debugFlag) {
+std::vector<cv::Mat>
+TechniqueMethods::ROIRescaling(const cv::Mat& aBaseImage, bool debugFlag) {
 
     if(debugFlag) cv::imwrite("RAW_IMAGE.png", aBaseImage);
 
@@ -172,28 +193,8 @@ TechniqueMethods::ROIRescaling(const cv::Ptr<cv::ml::KNearest>& aKNNModel,
                                                  aBaseImage(roi).clone(),
                                                  aBaseImage.rows, aBaseImage.cols, debugFlag);
 
-    if(rescaledMats.empty()) {
-        LOG(level::standard, "TechniqueMethods::ROIRescaling", "rescaleROI() returned a empty vector.");
-        return 0;
-    }
-
-    auto calculatedLabels = std::vector<int>();
-    calculatedLabels.reserve(rescaledMats.size());
-    for(auto& mats : rescaledMats) {
-        auto flatImage = ImageMethods::prepareMatrixForKNN(mats);
-        cv::Mat input, output;
-        input.push_back(flatImage);
-        input.convertTo(input, CV_32F);
-        output.convertTo(output, CV_32F);
-        try {
-            aKNNModel->findNearest(input, 4, output);
-        } catch(const cv::Exception& ex) {
-            ex.what();
-            return 0;
-        }
-        calculatedLabels.push_back((int)output.at<float>(0));
-    }
-
-    return ImageMethods::findMostFrequentLabel(calculatedLabels, debugFlag);
+    if(rescaledMats.empty())
+        LOG(level::warning, "TechniqueMethods::ROIRescaling()", "rescaleROI() returned a empty vector.");
+    return rescaledMats;
 }
 
