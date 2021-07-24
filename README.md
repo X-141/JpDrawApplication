@@ -59,6 +59,8 @@ then be used to bring up the character the model predicted. Good Fun!
 ## Special Thanks
 Personally want to thank Dr. Banerjee at WSU for providing help and insight into the world of Machine Learning!
 
+Also want to thank my close friends who encouraged me during the development of this project! Ya'll are also cool lads!
+
 ## Corresponding Independent Study Document
 This document contains the timeline, experiments, theories, and discoveries made during the development of this application.
 I would encourage anyone who is interested in how the machine learning side of the project evolved to give it a read!
