@@ -36,15 +36,14 @@ public:
     QImage generateImage();
 
     /**
-    * @brief setPenWidth
-    * Modify the width of the line drawn in
+    * @brief Modify the width of the line drawn in
     * the DrawArea layers.
+    * @param width A new width to set pen to.
     */
     void setPenWidth(int width);
 
     /**
-    * @brief compareLayer
-    * Takes the currently drawn hardlayer dimensions
+    * @brief Takes the currently drawn hardlayer dimensions
     * and scales the set of comparison images to match.
     * The important part is that we will compute the comparison
     * value between the hardlayer image and the comparison sets.
@@ -52,15 +51,14 @@ public:
     int compareLayer();
 
     /**
-    * @brief getComparisonImage
-    * Grab the comparison image at index. To be used
+    * @brief Grab the comparison image at index. To be used
     * with value returned from compareLayer()
+    * @param aLabel numeric value representing a label for a character
     */
-    QImage getComparisonImage(int index);
+    QImage getResourceCharacterImage(int aLabel);
 
     /**
-    * @brief undoLayer
-    * Remove from mVirtualLayerVector the layer
+    * @brief Remove from mVirtualLayerVector the layer
     * at the head. Note, this does not disable
     * the layer, but instead removes it.
     */
@@ -68,21 +66,24 @@ public:
 
 signals:
     /**
-     * @brief layer_update_handle
-     * Notifies any parent or object that layers have
+     * @brief Notifies any parent or object that layers have
      * been removed or added.
      */
-    void layerUpdateHandle(void);
+    void layerUpdateHandle();
 
 private:
+    /**
+     * @brief Draws a point between the previous point drawn and
+     * the new point created by the users mouse press.
+     * @param aPoint A new point to draw a line to from previous point.
+     */
     void pDrawPoint(QPoint aPoint);
 
     /**
-    * @brief loadComparisonImages
-    * Load from memory a series of characters
+    * @brief Load from memory a series of characters
     * to compare with the users drawings.
     */
-    void pLoadComparisonImages();
+    void pResourceCharacterImages();
 
 private:
     // Set to true on mouse down. Set to false on mouse up
