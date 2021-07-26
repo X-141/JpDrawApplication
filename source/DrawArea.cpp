@@ -7,7 +7,6 @@
 #include <QVector>
 #include <QRegularExpression>
 
-#include "LineMethods.hpp"
 #include "ImageProcessMethods.hpp"
 
 #include "opencv2/imgproc.hpp"
