@@ -62,7 +62,7 @@ MainWindow::compareLayer(bool checked) {
     //LOG("Now comparing layers");
     LOG(level::info, "MainWindow::CompareLayer()", "Now comparing layers");
     int loadIndex = mDrawArea->compareLayer();
-    QImage loadImage = mDrawArea->getComparisonImage(loadIndex);
+    QImage loadImage = mDrawArea->getResourceCharacterImage(loadIndex);
     mPredictionArea->setPixmap(QPixmap::fromImage(loadImage));
 }
 
