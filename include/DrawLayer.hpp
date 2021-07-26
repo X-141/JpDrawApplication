@@ -12,14 +12,12 @@ public:
     ~DrawLayer() = default;
 
     /**
-     * @brief enable
-     * Set the layer to be displayed in the draw area.
+     * @brief Set the layer to be displayed in the draw area.
      */
     void enable();
 
     /**
-     * @brief disable
-     * Set the layer not to be displayed in the draw area.
+     * @brief Set the layer not to be displayed in the draw area.
      */
     void disable();
 
@@ -32,9 +30,8 @@ public:
     void setEnableStatus(bool status);
 
 private:
+    // Numerical id for the layer.
     uint mId;
-    // Possibly implement string id
-    // but not necessary for internal representation.
 
     // Is the layer currently being shown?
     bool mEnabled;

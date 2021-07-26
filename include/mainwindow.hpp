@@ -30,26 +30,35 @@ public:
 public slots:
 
     /**
-    * @brief compareLayer
-    * Compares the currently drawn layer
+    * @briefCompares the currently drawn layer
     * to a layer loaded from system memory.
     */
     void compareLayer(bool);
 
     /**
-    * @brief keyPressEvent
-    * Capture key combinations:
+    * @brief Capture key combinations:
     * ctrl-z : undo
     */
     void keyPressEvent(QKeyEvent* event) override;
     void keyReleaseEvent(QKeyEvent* event) override;
 
 private:
+    // Main GUI window pointer.
     Ui::MainWindow *mUi;
+
+    // Pointer to region maintaining the drawing
+    // space.
     DrawArea* mDrawArea;
+
+    // Widget to place predicted character
+    // according to the model.
     QLabel* mPredictionArea;
+
+    // Button to initiate passing current
+    // drawn image to the model.
     QPushButton* mCompareButton;
 
+    // indicate that the ctrl key has been pressed.
     bool mCtrlKey_modifier;
 
 };
