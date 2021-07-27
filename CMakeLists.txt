@@ -15,9 +15,11 @@ include_directories( "include" )
 # this is some information on how to set multiple prefix paths
 # Some of these paths are set to local machine config.
 # You should adjust your paths here.
-#set(CMAKE_PREFIX_PATH "C:\\Qt\\5.15.2\\msvc2019_64\\")
-#set(OpenCV_DIR "C:\\opencv\\build")
-#set(GTEST_ROOT "C:\\Program Files\\googletest-distribution")
+if(WIN32)
+    set(CMAKE_PREFIX_PATH "C:\\Qt\\5.15.2\\msvc2019_64\\")
+    set(OpenCV_DIR "C:\\opencv\\build")
+    set(GTEST_ROOT "C:\\Program Files\\googletest-distribution")
+endif()
 
 file( GLOB SOURCES "source/*.cpp" "include/*.hpp" )
 

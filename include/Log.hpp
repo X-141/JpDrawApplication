@@ -10,6 +10,8 @@
 * This is a very basic logging system.
 * Currently only supports printing to console
 * and writing to file.
+*
+* The class is structured as a singleton object.
 */
 
 // https://stackoverflow.com/questions/1008019/c-singleton-design-pattern

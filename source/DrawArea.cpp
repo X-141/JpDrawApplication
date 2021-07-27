@@ -7,7 +7,6 @@
 #include <QVector>
 #include <QRegularExpression>
 
-#include "LineMethods.hpp"
 #include "ImageProcessMethods.hpp"
 
 #include "opencv2/imgproc.hpp"
@@ -33,7 +32,7 @@ DrawArea::DrawArea(QWidget* parent)
 
     mVirtualLayerVector.reserve(32);
 
-    pLoadComparisonImages();
+    pResourceCharacterImages();
 }
 
 void
@@ -123,7 +122,7 @@ DrawArea::compareLayer() {
 }
 
 QImage 
-DrawArea::getComparisonImage(int index) {
+DrawArea::getResourceCharacterImage(int index) {
     return mComparisonImagesDict[index];
 }
 
@@ -144,15 +143,9 @@ DrawArea::pDrawPoint(QPoint aPoint) {
     painter_hard.setPen(pen);
     painter_virt.setPen(pen);
 
-    // For now we will just check if it works.
-    QVector<QPoint> VectorOfCalcdPoints;
-    VectorOfCalcdPoints.reserve(64);
-    calculateQPoints(mPrevPoint, aPoint, VectorOfCalcdPoints);
-    for(const auto& point : VectorOfCalcdPoints) {
-        //qInfo() << "Point calculated: " << point;
-        painter_hard.drawPoint(point);
-        painter_virt.drawPoint(point);
-    }
+    painter_hard.drawLine(mPrevPoint, aPoint);
+    painter_virt.drawLine(mPrevPoint, aPoint);
+
     mPrevPoint = aPoint;
     painter_hard.end();
     painter_virt.end();
@@ -160,7 +153,7 @@ DrawArea::pDrawPoint(QPoint aPoint) {
 }
 
 void
-DrawArea::pLoadComparisonImages() {
+DrawArea::pResourceCharacterImages() {
     QFile knnDictFile = QFile(mKnnDictFilepath.c_str());
     if(!knnDictFile.open(QIODevice::ReadOnly | QIODevice::Text))
         return;
@@ -178,7 +171,7 @@ DrawArea::pLoadComparisonImages() {
         for(auto png : images) {
             auto match_png = reg_png.match(png);
             if (match_png.captured("character") == match_txt.captured("character")) {
-                LOG(level::standard, "DrawArea::pLoadComparisonImages()",
+                LOG(level::standard, "DrawArea::pResourceCharacterImages()",
                     QString(match_png.captured("character") + " " + match_txt.captured("number")));
 
                 mComparisonImagesDict.insert(match_txt.captured("number").toInt(),

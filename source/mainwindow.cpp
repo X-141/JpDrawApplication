@@ -54,15 +54,14 @@ MainWindow::~MainWindow()
     delete mUi;
     delete mDrawArea;
     delete mCompareButton;
-//    delete mPenWidthSlider;
 }
 
 void
-MainWindow::compareLayer(bool checked) {
+MainWindow::compareLayer(bool) {
     //LOG("Now comparing layers");
     LOG(level::info, "MainWindow::CompareLayer()", "Now comparing layers");
     int loadIndex = mDrawArea->compareLayer();
-    QImage loadImage = mDrawArea->getComparisonImage(loadIndex);
+    QImage loadImage = mDrawArea->getResourceCharacterImage(loadIndex);
     mPredictionArea->setPixmap(QPixmap::fromImage(loadImage));
 }
 

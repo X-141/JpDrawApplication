@@ -8,10 +8,9 @@
 #include "Log.hpp"
 
 cv::Mat
-ImageMethods::qImageToCvMat(QImage image) {
-	// We have to clone the matrix. See https://stackoverflow.com/questions/11170485/qimage-to-cvmat-convertion-strange-behaviour
+ImageMethods::qImageToCvMat(QImage aImage) {
 	cv::Mat unaltered_mat, grey_mat;
-	unaltered_mat = cv::Mat(image.height(), image.width(), CV_8UC4, (uchar *)image.bits(), image.bytesPerLine());
+	unaltered_mat = cv::Mat(aImage.height(), aImage.width(), CV_8UC4, (uchar *)aImage.bits(), aImage.bytesPerLine());
 	cv::cvtColor(unaltered_mat, grey_mat, cv::COLOR_BGRA2GRAY);
 	return grey_mat.clone();
 }
@@ -85,10 +84,9 @@ cv::Mat
 ImageMethods::prepareMatrixForKNN(cv::Mat aMat) {
     cv::resize(aMat, aMat, cv::Size(IMAGE_DIMENSION,IMAGE_DIMENSION));
     cv::threshold(aMat, aMat, 15, 255, cv::THRESH_BINARY);
-    // Cleaner thresholding method. Produces good results.
+    // Possible alternative. Needs testing to make sure it doesn't cause
+    // issues with finding the ROI.
     //cv::threshold(aMat, aMat, 0, 255, cv::THRESH_BINARY | cv::THRESH_OTSU);
-    //static int value;
-    //cv::imwrite("converted_" + std::to_string(value++) + ".png", aMat);
     aMat.convertTo(aMat, CV_32F);
     return aMat.reshape(0, 1);
 }
