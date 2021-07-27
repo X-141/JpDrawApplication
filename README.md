@@ -9,8 +9,8 @@ knowledge in machine learning. But! That's all the more reason to try applying i
 as early as I can.
 
 ## Current Model
-The current model being used is K-Nearest Neighbor (kNN) Model. It is a surpervised model that is very easy to use and train. The only requirements to use the model
-are images with cooresponding labeling for each.
+The current model being used is K-Nearest Neighbor (kNN) Model. It is a supervised model that is very easy to use and train. The only requirements to use the model
+are images with corresponding labeling for each.
 
 The model is found in the resource folder with a .opknn extension. There should be an .txt file in the directory that allows the numeric labeling to be
 tied to the images in the resource folder.
