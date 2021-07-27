@@ -2,6 +2,8 @@
 This is an application meant to help people like me dip their toes into machine learning and it's potential for learning new languages. In its current form,
 JpDrawApplication is a functional demo piece showing specific models being used to predict what character is drawn by the user. 
 
+![Alt text](Doc/DemoUse.gif)
+
 It should also be stated that this application is a part of a summer independent study for my own personal education. Prior to this application, I had zero
 knowledge in machine learning. But! That's all the more reason to try applying it in a cool application! It's personally how I learn best and make the mistakes
 as early as I can.
@@ -32,9 +34,10 @@ Below is the link to the dataset: http://etlcdb.db.aist.go.jp/
 4. GCC/G++
 5. Qt5
 6. OpenCV (Most recent version)
+7. GTest
 
-The application is built primarily using C++, Qt-gui framework, and the OpenCV library. These are the libraries I knew/wanted to learn so they are used
-in this project.
+The application is built primarily using C++, Qt-gui framework, OpenCV, and GTest. These are the libraries I knew/wanted to learn so they are used
+in this project. Its a nice blend of a lot of things and should serve as a good reference for students wanting to blend packages together.
 
 ## Getting started
 These instructions will assume a Linux environment (This project was made on ubuntu based distro). Windows build is possible, however, it requires more in-depth
@@ -56,17 +59,17 @@ drawn.
 For instance it will extract your drawn image, rescale, and filtered to prepare it for the kNN model. Once fed, the model will output a numeric value that will
 then be used to bring up the character the model predicted. Good Fun!
 
-## Special Thanks
-Personally want to thank Dr. Banerjee at WSU for providing help and insight into the world of Machine Learning!
-
-Also want to thank my close friends who encouraged me during the development of this project! Ya'll are also cool lads!
+## Corresponding Dataset Scripts
+For anyone interested in how i extracted, processed, and trained the current K-Nearest Neighbor model:
+https://github.com/X-141/DatasetScripts
 
 ## Corresponding Independent Study Document
 This document contains the timeline, experiments, theories, and discoveries made during the development of this application.
 I would encourage anyone who is interested in how the machine learning side of the project evolved to give it a read!
 https://drive.google.com/file/d/1S13GJMSUeQVPwPN_rILl1cP4T9wgAgnD/view?usp=sharing
 
-## Corresponding Dataset Scripts
-For anyone interested in how i extracted, processed, and trained the current K-Nearest Neighbor model:
-https://github.com/X-141/DatasetScripts
+## Special Thanks
+Personally want to thank Dr. Banerjee at WSU for providing help and insight into the world of Machine Learning!
+
+Also want to thank my close friends who encouraged me during the development of this project! Ya'll are also cool lads!
 
